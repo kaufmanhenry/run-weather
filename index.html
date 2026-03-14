@@ -492,8 +492,13 @@
             return notes.length > 0 ? notes.join(' · ') : null;
         }
         
-        // Auto-load on page load
-        window.onload = () => fetchWeather();
+        // Auto-search with default location on page load
+        window.onload = () => {
+            const location = document.getElementById('location').value;
+            if (location) {
+                fetchWeather();
+            }
+        };
     </script>
 </body>
 </html>
