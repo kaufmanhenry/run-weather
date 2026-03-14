@@ -354,6 +354,8 @@
         function displayForecast(weather, locationName) {
             const results = document.getElementById('results');
             const days = {};
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
             
             // Group by day
             weather.hourly.time.forEach((time, i) => {
@@ -374,6 +376,11 @@
             let html = '<div class="forecast">';
             
             Object.entries(days).forEach(([dateStr, hours]) => {
+                const date = new Date(dateStr);
+                date.setHours(0, 0, 0, 0);
+                
+                // Skip past days
+                if (date < today) return;
                 const date = new Date(dateStr);
                 const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
                 const dateFormatted = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
