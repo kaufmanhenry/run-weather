@@ -2,6 +2,9 @@
 
 Simple, beautiful tool to find optimal running windows based on weather conditions.
 
+**Live:** https://run-weather.pages.dev  
+**GitHub:** https://github.com/kaufmanhenry/run-weather
+
 ## Features
 - 7-day forecast with hourly breakdowns
 - Morning (6-9am) and evening (4-7pm) running windows
