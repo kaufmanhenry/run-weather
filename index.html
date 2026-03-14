@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Run Weather Planner</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+        
+        .location-input {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        
+        button {
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        button:hover {
+            background: #5568d3;
+        }
+        
+        .loading {
+            text-align: center;
+            color: white;
+            font-size: 1.2rem;
+            padding: 40px;
+        }
+        
+        .forecast {
+            display: grid;
+            gap: 15px;
+        }
+        
+        .day-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .day-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .day-name {
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+        
+        .day-date {
+            color: #666;
+        }
+        
+        .run-windows {
+            display: grid;
+            gap: 10px;
+        }
+        
+        .window {
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 4px solid;
+        }
+        
+        .window.excellent {
+            background: #d4edda;
+            border-color: #28a745;
+        }
+        
+        .window.good {
+            background: #d1ecf1;
+            border-color: #17a2b8;
+        }
+        
+        .window.fair {
+            background: #fff3cd;
+            border-color: #ffc107;
+        }
+        
+        .window.poor {
+            background: #f8d7da;
+            border-color: #dc3545;
+        }
+        
+        .window-time {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .window-details {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .rating {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+        
+        .excellent .rating {
+            background: #28a745;
+            color: white;
+        }
+        
+        .good .rating {
+            background: #17a2b8;
+            color: white;
+        }
+        
+        .fair .rating {
+            background: #ffc107;
+            color: #333;
+        }
+        
+        .poor .rating {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .error {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏃 Run Weather Planner</h1>
+            <p class="subtitle">Find your optimal running windows</p>
+        </header>
+        
+        <div class="location-input">
+            <div class="input-group">
+                <input type="text" id="location" placeholder="Enter city (e.g., Boston, MA)" value="Boston, MA">
+                <button onclick="fetchWeather()">Get Forecast</button>
+            </div>
+        </div>
+        
+        <div id="results"></div>
+    </div>
+    
+    <script>
+        async function fetchWeather() {
+            const location = document.getElementById('location').value;
+            const results = document.getElementById('results');
+            
+            results.innerHTML = '<div class="loading">Loading forecast...</div>';
+            
+            try {
+                // Geocode location
+                const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(location)}&count=1&language=en&format=json`);
+                const geoData = await geoRes.json();
+                
+                if (!geoData.results || geoData.results.length === 0) {
+                    throw new Error('Location not found');
+                }
+                
+                const { latitude, longitude, name } = geoData.results[0];
+                
+                // Fetch weather
+                const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&hourly=temperature_2m,precipitation_probability,windspeed_10m,apparent_temperature&temperature_unit=fahrenheit&windspeed_unit=mph&precipitation_unit=inch&timezone=auto&forecast_days=7`);
+                const weather = await weatherRes.json();
+                
+                displayForecast(weather, name);
+            } catch (error) {
+                results.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+        
+        function displayForecast(weather, locationName) {
+            const results = document.getElementById('results');
+            const days = {};
+            
+            // Group hourly data by day
+            weather.hourly.time.forEach((time, i) => {
+                const date = new Date(time);
+                const dayKey = date.toISOString().split('T')[0];
+                
+                if (!days[dayKey]) {
+                    days[dayKey] = [];
+                }
+                
+                days[dayKey].push({
+                    hour: date.getHours(),
+                    temp: weather.hourly.temperature_2m[i],
+                    feelsLike: weather.hourly.apparent_temperature[i],
+                    precip: weather.hourly.precipitation_probability[i],
+                    wind: weather.hourly.windspeed_10m[i]
+                });
+            });
+            
+            let html = '';
+            
+            Object.entries(days).forEach(([dateStr, hours]) => {
+                const date = new Date(dateStr);
+                const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
+                const dateFormatted = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                
+                // Find optimal windows (6am-9am, 4pm-7pm)
+                const morningWindow = hours.filter(h => h.hour >= 6 && h.hour <= 9);
+                const eveningWindow = hours.filter(h => h.hour >= 16 && h.hour <= 19);
+                
+                html += `
+                    <div class="day-card">
+                        <div class="day-header">
+                            <span class="day-name">${dayName}</span>
+                            <span class="day-date">${dateFormatted}</span>
+                        </div>
+                        <div class="run-windows">
+                            ${renderWindow('Morning', morningWindow)}
+                            ${renderWindow('Evening', eveningWindow)}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            results.innerHTML = html;
+        }
+        
+        function renderWindow(label, hours) {
+            if (hours.length === 0) return '';
+            
+            const avgTemp = hours.reduce((sum, h) => sum + h.temp, 0) / hours.length;
+            const avgFeels = hours.reduce((sum, h) => sum + h.feelsLike, 0) / hours.length;
+            const maxPrecip = Math.max(...hours.map(h => h.precip));
+            const avgWind = hours.reduce((sum, h) => sum + h.wind, 0) / hours.length;
+            
+            const rating = getRating(avgTemp, avgFeels, maxPrecip, avgWind);
+            
+            return `
+                <div class="window ${rating.class}">
+                    <div class="window-time">
+                        ${label}
+                        <span class="rating">${rating.label}</span>
+                    </div>
+                    <div class="window-details">
+                        ${Math.round(avgTemp)}°F (feels ${Math.round(avgFeels)}°F) · 
+                        ${Math.round(maxPrecip)}% precip · 
+                        ${Math.round(avgWind)} mph wind
+                    </div>
+                </div>
+            `;
+        }
+        
+        function getRating(temp, feels, precip, wind) {
+            let score = 100;
+            
+            // Temp scoring (ideal: 40-55°F)
+            if (temp < 25 || temp > 75) score -= 30;
+            else if (temp < 35 || temp > 65) score -= 20;
+            else if (temp < 40 || temp > 60) score -= 10;
+            
+            // Feels like deviation
+            const feelsDiff = Math.abs(temp - feels);
+            if (feelsDiff > 15) score -= 20;
+            else if (feelsDiff > 10) score -= 10;
+            
+            // Precip
+            if (precip > 60) score -= 30;
+            else if (precip > 40) score -= 20;
+            else if (precip > 20) score -= 10;
+            
+            // Wind
+            if (wind > 20) score -= 20;
+            else if (wind > 15) score -= 10;
+            else if (wind > 10) score -= 5;
+            
+            if (score >= 80) return { class: 'excellent', label: 'Excellent' };
+            if (score >= 60) return { class: 'good', label: 'Good' };
+            if (score >= 40) return { class: 'fair', label: 'Fair' };
+            return { class: 'poor', label: 'Poor' };
+        }
+        
+        // Load default on page load
+        window.onload = () => fetchWeather();
+    </script>
+</body>
+</html>
