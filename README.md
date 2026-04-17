@@ -3,7 +3,6 @@
 An editorial almanac for the distance runner. Find the best training windows in the week ahead — at a glance.
 
 **Live:** https://weather.setlist.run
-**GitHub:** https://github.com/kaufmanhenry/run-weather
 
 ## Features
 
