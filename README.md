@@ -57,6 +57,15 @@ Manual deploy:
 wrangler pages deploy . --project-name=run-weather
 ```
 
+## Part of the setlist.run suite
+
+A small press of running tools for the distance runner:
+
+- **[Setlist](https://setlist.run)** — what you listened to, synced to your pace
+- **[Training Load](https://training.setlist.run)** — are you ready for tomorrow's workout?
+- **[Run Weather](https://weather.setlist.run)** — the best training windows in the week ahead · _you're here_
+- **[Gradient](https://gradient.setlist.run)** — the grade profile of any Strava segment
+
 ---
 
 Built by [setlist.run](https://setlist.run).
