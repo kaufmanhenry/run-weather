@@ -496,6 +496,28 @@
 
         .colophon-sub .sep { color: var(--faint); margin: 0 8px; }
 
+        /* ───────── Suite ───────── */
+
+        .suite-label {
+            font-family: var(--sans); font-size: 10px; font-weight: 500;
+            letter-spacing: 0.24em; text-transform: uppercase; color: var(--faint);
+            margin-bottom: 12px;
+        }
+        .suite {
+            display: flex; flex-wrap: wrap; justify-content: center;
+            margin-bottom: 24px; font-family: var(--sans); font-size: 11px;
+            letter-spacing: 0.03em;
+        }
+        .suite a, .suite span.cur {
+            display: inline-flex; align-items: center; gap: 7px;
+            padding: 5px 14px; color: var(--muted); text-decoration: none;
+            border-left: 1px solid var(--hairline); transition: color 0.2s;
+        }
+        .suite > :first-child { border-left: none; }
+        .suite a:hover { color: var(--ink); }
+        .suite span.cur { color: var(--ink); font-weight: 600; }
+        .suite .dot { width: 8px; height: 8px; border-radius: 2px; flex: none; }
+
         /* ───────── Motion ───────── */
 
         @keyframes rise {
@@ -561,6 +583,13 @@
         <div id="results"></div>
 
         <footer class="colophon">
+            <div class="suite-label">The setlist.run suite</div>
+            <nav class="suite">
+                <a href="https://setlist.run"><span class="dot" style="background:#fc4c02"></span>Setlist</a>
+                <a href="https://training.setlist.run"><span class="dot" style="background:#12a594"></span>Training Load</a>
+                <span class="cur"><span class="dot" style="background:#4a7fe0"></span>Run Weather</span>
+                <a href="https://gradient.setlist.run"><span class="dot" style="background:linear-gradient(90deg,#2fb344,#f59f00,#e03131)"></span>Gradient</a>
+            </nav>
             <p class="colophon-main">
                 Built by <a href="https://setlist.run" target="_blank" rel="noopener">setlist.run</a>
             </p>
