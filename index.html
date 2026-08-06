@@ -6,7 +6,7 @@
     <title>Run Weather — A Weekly Almanac</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..700,0..100;1,9..144,300..700,0..100&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..700,0..100;1,9..144,300..700,0..100&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
             --paper: #f7f4ec;
@@ -26,7 +26,34 @@
 
             --serif: 'Fraunces', 'Times New Roman', serif;
             --sans: 'DM Sans', -apple-system, system-ui, sans-serif;
+            /* Suite label face (SUITE.md). Was never loaded here. */
+            --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
         }
+
+
+        /* Suite bar. Deliberately dark on this light page: the bar is chrome
+           belonging to setlist.run, not to Run Weather, so it stays the same
+           across the suite whatever the host app's own theme is. Matches the
+           bar on training.setlist.run and gradient.setlist.run. */
+        .suitebar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+            padding: 9px 20px;
+            background: #16140f;
+            border-bottom: 1px solid rgba(241, 237, 226, 0.13);
+            font-family: var(--mono);
+            font-size: 11px;
+            line-height: 1.4;
+        }
+        .suitebar a { text-decoration: none; white-space: nowrap; }
+        .suitebar .hub { color: #f1ede2; letter-spacing: 0.06em; }
+        .suitebar .hub span { color: #9a9384; opacity: 0.6; margin-left: 8px; }
+        .suitebar nav { display: flex; gap: 18px; flex-wrap: wrap; }
+        .suitebar nav a { color: #9a9384; }
+        .suitebar nav a:hover { color: #f1ede2; }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -558,6 +585,14 @@
     </style>
 </head>
 <body>
+    <header class="suitebar">
+        <a class="hub" href="https://setlist.run">setlist.run<span>suite</span></a>
+        <nav>
+            <a href="https://setlist.run">Setlist</a>
+            <a href="https://training.setlist.run">Training Load</a>
+            <a href="https://gradient.setlist.run">Gradient</a>
+        </nav>
+    </header>
     <div class="container">
 
         <header class="masthead">
