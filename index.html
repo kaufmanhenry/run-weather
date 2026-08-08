@@ -703,10 +703,21 @@
             return out;
         }
 
-        // Null whenever NWS has nothing for this point — outside the US, or the
-        // service is down. Never throws: this is an enhancement, and losing it
-        // should cost the reader nothing but the extra precision.
-        async function fetchHeatStress(lat, lon, offsetSeconds) {
+        const cToF = c => c * 9 / 5 + 32;
+        const kmhToMph = k => k * 0.621371;
+
+        // Every reading an hour needs, or null.
+        //
+        // Deliberately all of them, not just WBGT. Taking the heat stress from
+        // NWS while the temperature beside it came from Open-Meteo put two
+        // independent forecasts in one row, and at four days out they disagree:
+        // for the same Wednesday evening NWS said 85° and Open-Meteo said 68°.
+        // NWS's WBGT of 75 was right for NWS's own 85°, and nonsense next to a
+        // 68° that the page displayed. A row has to come from one forecast.
+        //
+        // Null outside the US or if the service is down, and the page falls
+        // back to Open-Meteo for everything, which is coherent in its own right.
+        async function fetchNws(lat, lon, offsetSeconds) {
             try {
                 const pointRes = await fetch(`${NWS_POINTS}/${lat.toFixed(4)},${lon.toFixed(4)}`);
                 if (!pointRes.ok) return null;
@@ -715,14 +726,40 @@
 
                 const gridRes = await fetch(gridUrl);
                 if (!gridRes.ok) return null;
-                const grid = (await gridRes.json()).properties;
+                const g = (await gridRes.json()).properties;
 
-                const wbgt = expandGrid(grid.wetBulbGlobeTemperature, offsetSeconds, c => c * 9 / 5 + 32);
-                if (wbgt.size === 0) return null;
-                return { wbgt, thunder: expandGrid(grid.probabilityOfThunder, offsetSeconds) };
+                const nws = {
+                    temp:     expandGrid(g.temperature, offsetSeconds, cToF),
+                    feels:    expandGrid(g.apparentTemperature, offsetSeconds, cToF),
+                    dew:      expandGrid(g.dewpoint, offsetSeconds, cToF),
+                    humidity: expandGrid(g.relativeHumidity, offsetSeconds),
+                    wind:     expandGrid(g.windSpeed, offsetSeconds, kmhToMph),
+                    precip:   expandGrid(g.probabilityOfPrecipitation, offsetSeconds),
+                    wbgt:     expandGrid(g.wetBulbGlobeTemperature, offsetSeconds, cToF),
+                    thunder:  expandGrid(g.probabilityOfThunder, offsetSeconds),
+                };
+                // Without WBGT there is no reason to prefer this over
+                // Open-Meteo, which has denser hourly coverage.
+                if (nws.wbgt.size === 0 || nws.temp.size === 0) return null;
+                return nws;
             } catch (e) {
                 return null;
             }
+        }
+
+        // An hour is sourced whole or not at all, so the numbers in a row are
+        // always from the same forecast.
+        function nwsHour(nws, key) {
+            if (!nws) return null;
+            const need = ['temp', 'feels', 'dew', 'humidity', 'wind', 'precip', 'wbgt'];
+            const out = {};
+            for (const k of need) {
+                const v = nws[k].get(key);
+                if (v === undefined) return null;
+                out[k] = v;
+            }
+            out.thunder = nws.thunder.get(key);
+            return out;
         }
 
         // "2026-08-11" -> local midnight on that calendar day.
@@ -820,10 +857,10 @@
                 const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&hourly=temperature_2m,apparent_temperature,precipitation_probability,windspeed_10m,relative_humidity_2m,dew_point_2m&daily=sunrise,sunset&temperature_unit=fahrenheit&windspeed_unit=mph&timezone=auto&forecast_days=7`);
                 const weather = await weatherRes.json();
 
-                const heat = await fetchHeatStress(latitude, longitude, weather.utc_offset_seconds || 0);
+                const nws = await fetchNws(latitude, longitude, weather.utc_offset_seconds || 0);
 
                 localStorage.setItem(STORAGE_KEY, location);
-                displayForecast(weather, label, heat);
+                displayForecast(weather, label, nws);
             } catch (error) {
                 results.innerHTML = `<div class="error">${error.message}</div>`;
             } finally {
@@ -831,15 +868,15 @@
             }
         }
 
-        function displayForecast(weather, locationName, heat) {
+        function displayForecast(weather, locationName, nws) {
             const results = document.getElementById('results');
 
             // Credit NWS only where it actually contributed, so a reader
             // outside the US is not told about a source that had nothing for
-            // their location.
+            // their location. Open-Meteo still supplies sun times either way.
             const credit = document.getElementById('nws-credit');
             if (credit) {
-                credit.innerHTML = heat
+                credit.innerHTML = nws
                     ? ' + <a href="https://www.weather.gov" target="_blank" rel="noopener">NWS</a>'
                     : '';
             }
@@ -867,16 +904,28 @@
                 // Local wall clock, "2026-08-08T05:00" -> "2026-08-08T05".
                 const key = String(time).slice(0, 13);
                 if (!days[dayKey]) days[dayKey] = [];
-                days[dayKey].push({
+
+                // NWS for the whole hour where it has one, Open-Meteo for the
+                // whole hour otherwise. Never half of each.
+                const n = nwsHour(nws, key);
+                days[dayKey].push(n ? {
+                    hour: +time.slice(11, 13),
+                    temp: n.temp,
+                    feelsLike: n.feels,
+                    precip: n.precip,
+                    wind: n.wind,
+                    humidity: n.humidity,
+                    dewPoint: n.dew,
+                    wbgt: n.wbgt,
+                    thunder: n.thunder
+                } : {
                     hour: +time.slice(11, 13),
                     temp: weather.hourly.temperature_2m[i],
                     feelsLike: weather.hourly.apparent_temperature[i],
                     precip: weather.hourly.precipitation_probability[i],
                     wind: weather.hourly.windspeed_10m[i],
                     humidity: weather.hourly.relative_humidity_2m[i],
-                    dewPoint: weather.hourly.dew_point_2m[i],
-                    wbgt: heat ? heat.wbgt.get(key) : undefined,
-                    thunder: heat ? heat.thunder.get(key) : undefined
+                    dewPoint: weather.hourly.dew_point_2m[i]
                 });
             });
 
