@@ -431,6 +431,10 @@
             line-height: 1.5;
         }
 
+        /* Each reading wraps whole. Without this the line breaks mid-stat on a
+           phone and strands "humidity" on its own row, away from its number. */
+        .window-stats .stat { white-space: nowrap; }
+
         .window-stats .dot {
             color: var(--faint);
             margin: 0 7px;
@@ -622,18 +626,82 @@
         // guess whether evening started at 4 or at 7. Both ends live here now,
         // and the label renders its own range, so the two cannot drift apart.
         // Hours are inclusive: `to: 9` covers the 9am hour.
-        const WINDOWS = {
-            morning: { label: 'Early Morning', from: 5,  to: 9  },
-            evening: { label: 'Evening',       from: 16, to: 20 },
+        // The two halves of the day the almanac looks in. These are search
+        // bounds, not the answer: the hours actually reported are picked inside
+        // them per day (see bestStretch), because a fixed block averaged away
+        // the thing this page exists to tell you. A 5-9a August morning runs
+        // 73° to 81°; one mean over those five hours gives 5a and 9a the same
+        // verdict when 5a is a good run and 9a is the worst hour of the
+        // morning.
+        const BANDS = {
+            morning: { label: 'Morning', from: 5,  to: 9  },
+            evening: { label: 'Evening', from: 16, to: 20 },
         };
+
+        // Shortest stretch worth reporting. An hour is a run; anything less is
+        // a gap between two worse hours, not a window.
+        const MIN_STRETCH = 2;
+
+        // How much mean score a longer stretch may give up and still win. Two
+        // good hours inside three near-identical ones is a distinction without
+        // a difference — prefer the one that gives you room to get out.
+        const STRETCH_SLACK = 4;
 
         const hourLabel = (h) => `${h % 12 === 0 ? 12 : h % 12}${h < 12 ? 'a' : 'p'}`;
 
-        // "5–9a" when both ends share a meridiem, "11a–1p" when they don't.
-        const windowRange = ({ from, to }) =>
+        // "5–7a" when both ends share a meridiem, "11a–1p" when they don't.
+        // `to` is the last whole hour included, so it reads as its start time.
+        const hourSpan = (from, to) =>
             (from < 12) === (to < 12)
                 ? `${hourLabel(from).slice(0, -1)}–${hourLabel(to)}`
                 : `${hourLabel(from)}–${hourLabel(to)}`;
+
+        // Open-Meteo returns sunrise/sunset as local ISO strings ("...T05:45").
+        const isoHour = (s) => (s ? parseInt(s.slice(11, 13), 10) : null);
+
+        // Clip a band to the hours with daylight in them. The API already sends
+        // sunrise and sunset and the page only ever printed them in the header,
+        // so in December it would happily recommend 5a and 8p in Boston — both
+        // pitch dark — with the sun times sitting on the same row. The hour
+        // containing sunrise or sunset counts as usable.
+        function daylightBand(band, sun) {
+            const rise = isoHour(sun && sun.sunrise);
+            const set  = isoHour(sun && sun.sunset);
+            const from = rise === null ? band.from : Math.max(band.from, rise);
+            const to   = set  === null ? band.to   : Math.min(band.to, set);
+            return from > to ? null : { ...band, from, to };
+        }
+
+        // The best contiguous run of hours in a band, by mean hourly score.
+        // Every candidate stretch of MIN_STRETCH or more is scored; among those
+        // within STRETCH_SLACK of the winner, the longest wins, earliest on a
+        // tie. Bands are five hours, so the quadratic scan is free.
+        function bestStretch(hours) {
+            if (hours.length === 0) return null;
+
+            const minLen = Math.min(MIN_STRETCH, hours.length);
+            const candidates = [];
+            for (let i = 0; i < hours.length; i++) {
+                for (let n = minLen; i + n <= hours.length; n++) {
+                    const slice = hours.slice(i, i + n);
+                    candidates.push({
+                        hours: slice,
+                        mean: slice.reduce((s, h) => s + h.score, 0) / n,
+                    });
+                }
+            }
+
+            // Hold the target still. Comparing each candidate against a `best`
+            // that is being reassigned inside the same loop lets every slightly
+            // worse, slightly longer stretch reset the bar it just cleared, and
+            // the whole band wins by creep every time.
+            const topMean = Math.max(...candidates.map(c => c.mean));
+            return candidates
+                .filter(c => c.mean >= topMean - STRETCH_SLACK)
+                .sort((a, b) =>
+                    b.hours.length - a.hours.length ||
+                    a.hours[0].hour - b.hours[0].hour)[0];
+        }
 
         async function fetchWeather() {
             const input = document.getElementById('location');
@@ -722,8 +790,9 @@
                 const dateFormatted = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                 const isToday = date.getTime() === today.getTime();
 
-                const morning = summarize(WINDOWS.morning, hours.filter(h => h.hour >= WINDOWS.morning.from && h.hour <= WINDOWS.morning.to));
-                const evening = summarize(WINDOWS.evening, hours.filter(h => h.hour >= WINDOWS.evening.from && h.hour <= WINDOWS.evening.to));
+                const sun = sunByDay[dateStr];
+                const morning = summarize(BANDS.morning, sun, hours);
+                const evening = summarize(BANDS.evening, sun, hours);
 
                 [morning, evening].forEach(w => {
                     if (w) candidates.push({ ...w, dayLabel: primary });
@@ -731,7 +800,7 @@
 
                 dayBlocks.push({
                     primary, secondary, dateFormatted, isToday,
-                    sun: sunByDay[dateStr], morning, evening
+                    sun, morning, evening
                 });
             });
 
@@ -755,11 +824,11 @@
                     <section class="pick">
                         <div>
                             <p class="pick-eyebrow">The Pick</p>
-                            <p class="pick-when">${best.dayLabel} <em>${best.label.toLowerCase()}</em></p>
+                            <p class="pick-when">${best.dayLabel} <em>${best.hoursText}</em></p>
                             <p class="pick-stats">
-                                ${Math.round(best.avgTemp)}° feels ${Math.round(best.avgFeels)}°
-                                <span class="dot">·</span>${Math.round(best.maxPrecip)}% rain
-                                <span class="dot">·</span>${Math.round(best.avgWind)} mph
+                                ${spanText(best.temp, '°')} feels ${spanText(best.feels, '°')}
+                                <span class="dot">·</span>${Math.round(best.precip)}% rain
+                                <span class="dot">·</span>${Math.round(best.wind)} mph
                             </p>
                         </div>
                         <div class="pick-verdict ${best.rating.class}">${best.rating.label}</div>
@@ -794,34 +863,93 @@
                     .replace(' AM', 'a').replace(' PM', 'p');
         }
 
-        function summarize(window, hours) {
-            if (hours.length === 0) return null;
-            const label = window.label;
-            const range = windowRange(window);
-            const avg = k => hours.reduce((s, h) => s + h[k], 0) / hours.length;
-            const avgTemp = avg('temp');
-            const avgFeels = avg('feelsLike');
-            const maxPrecip = Math.max(...hours.map(h => h.precip));
-            const avgWind = avg('wind');
-            const avgDew = avg('dewPoint');
-            const avgHumidity = avg('humidity');
-            const { score, rating } = getRating(avgTemp, avgFeels, maxPrecip, avgWind, avgDew);
-            const note = getNote(avgTemp, avgFeels, maxPrecip, avgWind, avgDew);
-            return { label, range, avgTemp, avgFeels, maxPrecip, avgWind, avgDew, avgHumidity, score, rating, note };
+        // Score every hour in the band, keep the best contiguous stretch, and
+        // report what that stretch does from end to end rather than a mean.
+        // The reported hours are an output now, so the label names them.
+        function summarize(band, sun, dayHours) {
+            const lit = daylightBand(band, sun);
+            if (!lit) return null;
+
+            const hours = dayHours
+                .filter(h => h.hour >= lit.from && h.hour <= lit.to)
+                .sort((a, b) => a.hour - b.hour)
+                .map(h => ({ ...h, score: getRating(h.feelsLike, h.precip, h.wind, h.dewPoint).score }));
+
+            const best = bestStretch(hours);
+            if (!best) return null;
+
+            const pick = best.hours;
+            const span = (k) => {
+                const vs = pick.map(h => h[k]);
+                return { min: Math.min(...vs), max: Math.max(...vs) };
+            };
+
+            // Conditions at the ends of the stretch drive the verdict via the
+            // mean hourly score, but rain and wind are reported at their worst:
+            // a 60% hour inside an otherwise clear window is the thing you need
+            // to know, and averaging hides it.
+            const rating = ratingFor(best.mean);
+            const worstPrecip = Math.max(...pick.map(h => h.precip));
+            const worstWind = Math.max(...pick.map(h => h.wind));
+            const note = getNote(span('feelsLike').max, worstPrecip, worstWind, span('dewPoint').max);
+
+            return {
+                label: band.label,
+                // Last hour reads as its own start time, so a 5..6 stretch is
+                // "5-7a": you are out for the whole of the 6 o'clock hour.
+                hoursText: hourSpan(pick[0].hour, pick[pick.length - 1].hour + 1),
+                temp: span('temp'),
+                feels: span('feelsLike'),
+                dew: span('dewPoint'),
+                humidity: span('humidity'),
+                precip: worstPrecip,
+                wind: worstWind,
+                score: best.mean,
+                rating,
+                note,
+            };
+        }
+
+        // A span reads as one value when its ends round together, and as a
+        // range when they don't. Steady hours stay quiet; a window that climbs
+        // 8° says so on its face, which is the whole point of reporting the
+        // stretch instead of its mean.
+        function spanText({ min, max }, unit = '') {
+            const lo = Math.round(min);
+            const hi = Math.round(max);
+            return lo === hi ? `${lo}${unit}` : `${lo}–${hi}${unit}`;
+        }
+
+        // Readings joined by dots, each reading unbreakable and each separator
+        // glued to the reading before it. On a phone the row wraps to two
+        // lines; without the glue it breaks mid-reading and strands "humidity"
+        // under its own number, or starts the second line on a lone dot.
+        function statsLine(readings) {
+            return readings
+                .map((r, i) => `<span class="stat">${r}${
+                    i < readings.length - 1 ? '<span class="dot">·</span>' : ''
+                }</span>`)
+                // <wbr>, not a space: adjacent nowrap spans give the browser no
+                // soft-wrap opportunity at all, so the row would refuse to
+                // break and overflow instead. This adds the break point without
+                // adding width, leaving the dot's own margins to do the
+                // spacing.
+                .join('<wbr>');
         }
 
         function renderWindow(w) {
             return `
                 <div class="window ${w.rating.class}">
                     <div class="window-body">
-                        <p class="window-label">${w.label} <span class="window-hours">${w.range}</span></p>
-                        <span class="window-temp">${Math.round(w.avgTemp)}°</span>
-                        <p class="window-feels">feels ${Math.round(w.avgFeels)}°</p>
-                        <p class="window-stats">
-                            ${Math.round(w.maxPrecip)}% rain
-                            <span class="dot">·</span>${Math.round(w.avgWind)} mph
-                            <span class="dot">·</span>${Math.round(w.avgDew)}° dew
-                        </p>
+                        <p class="window-label">${w.label} <span class="window-hours">${w.hoursText}</span></p>
+                        <span class="window-temp">${spanText(w.temp, '°')}</span>
+                        <p class="window-feels">feels ${spanText(w.feels, '°')}</p>
+                        <p class="window-stats">${statsLine([
+                            `${Math.round(w.precip)}% rain`,
+                            `${Math.round(w.wind)} mph`,
+                            `${spanText(w.dew, '°')} dew`,
+                            `${spanText(w.humidity, '%')} humidity`,
+                        ])}</p>
                         ${w.note ? `<p class="window-note">${w.note}</p>` : ''}
                     </div>
                     <div class="window-rating">
@@ -831,59 +959,68 @@
             `;
         }
 
-        function getRating(temp, feels, precip, wind, dew) {
+        // One hour's runnability, 0-100. Ranks hours against each other; it is
+        // deliberately not shown anywhere.
+        //
+        // This used to charge for humidity up to three times over. It penalised
+        // raw temperature, then the gap between temperature and feels-like,
+        // then dew point — but feels-like is *derived* from temperature and
+        // humidity, so a muggy hour paid for the same fact in all three terms
+        // and got shoved toward Skip harder than the model intended.
+        //
+        // Now the thermal term reads feels-like directly, which is what a body
+        // registers and already carries the humidity load. Dew point keeps a
+        // smaller term of its own: feels-like understates how much wet air
+        // costs you once you are working, which is exactly the case running.
+        // The comfortable band for running, in feels-like °F. Outside it, every
+        // degree costs.
+        const IDEAL_LOW = 42;
+        const IDEAL_HIGH = 60;
+
+        function getRating(feels, precip, wind, dew) {
             let score = 100;
 
-            if (temp < 20 || temp > 80) score -= 40;
-            else if (temp < 32 || temp > 70) score -= 25;
-            else if (temp < 38 || temp > 62) score -= 15;
-            else if (temp < 40 || temp > 58) score -= 8;
+            // Continuous, not stepped. The old ladder had four rungs, so 79°
+            // and 81° scored identically — fine when the job was rubber-
+            // stamping a fixed block, useless now that the score has to rank
+            // hours against each other and pick where a window starts and ends.
+            const off = feels < IDEAL_LOW ? IDEAL_LOW - feels
+                      : feels > IDEAL_HIGH ? feels - IDEAL_HIGH
+                      : 0;
+            score -= Math.min(45, off * 1.6);
 
-            const feelsDiff = Math.abs(temp - feels);
-            if (feelsDiff > 15) score -= 25;
-            else if (feelsDiff > 10) score -= 15;
-            else if (feelsDiff > 5) score -= 8;
+            score -= Math.min(35, precip * 0.45);
 
-            if (precip > 70) score -= 35;
-            else if (precip > 50) score -= 25;
-            else if (precip > 30) score -= 15;
-            else if (precip > 15) score -= 8;
+            // Below 8mph is just air.
+            if (wind > 8) score -= Math.min(25, (wind - 8) * 1.8);
 
-            if (wind > 20) score -= 25;
-            else if (wind > 15) score -= 15;
-            else if (wind > 12) score -= 8;
-
-            if (dew > 70) score -= 25;
-            else if (dew > 65) score -= 15;
-            else if (dew > 60) score -= 8;
-            else if (dew > 55) score -= 3;
+            // Dew point keeps a term of its own on top of feels-like: wet air
+            // costs a working body more than a standing one, and the heat index
+            // is built for the standing one. Held small, since feels-like has
+            // already charged for most of it.
+            if (dew > 55) score -= Math.min(15, (dew - 55) * 0.75);
 
             score = Math.max(0, score);
-
-            let rating;
-            if (score >= 85)      rating = { class: 'perfect',     label: 'Prime' };
-            else if (score >= 65) rating = { class: 'solid',       label: 'Solid' };
-            else if (score >= 45) rating = { class: 'challenging', label: 'Tough' };
-            else                  rating = { class: 'skip',        label: 'Skip' };
-
-            return { score, rating };
+            return { score, rating: ratingFor(score) };
         }
 
-        function getNote(temp, feels, precip, wind, dew) {
+        function ratingFor(score) {
+            if (score >= 85) return { class: 'perfect',     label: 'Prime' };
+            if (score >= 65) return { class: 'solid',       label: 'Solid' };
+            if (score >= 45) return { class: 'challenging', label: 'Tough' };
+            return                  { class: 'skip',        label: 'Skip'  };
+        }
+
+        // Reads the harshest end of the reported stretch: these name what to
+        // expect at its worst, not on average.
+        function getNote(feels, precip, wind, dew) {
             const notes = [];
-            if (temp < 32) notes.push('ice risk');
-            else if (temp > 75) notes.push('heat');
+            if (feels < 32) notes.push('ice risk');
+            else if (feels > 80) notes.push('heat');
             if (precip > 60) notes.push('heavy rain likely');
             else if (precip > 30) notes.push('rain possible');
             if (wind > 20) notes.push('strong headwind');
             else if (wind > 15) notes.push('breezy');
-            const feelsDiff = feels - temp;
-            if (feelsDiff < -10) notes.push('wind chill');
-            // Was "humidity factor" — a "factor" is not a thing you feel, and it
-            // sat next to concrete neighbours like "muggy" and "breezy". This
-            // branch fires when the heat index runs 10°+ over the air
-            // temperature, so name that.
-            else if (feelsDiff > 10) notes.push('runs hotter');
             // "oppressive" is the National Weather Service's own word for a dew
             // point this high, so it stays — but "oppressive humidity" said
             // humidity twice, given the sibling note is "muggy".
