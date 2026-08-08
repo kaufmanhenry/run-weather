@@ -301,20 +301,12 @@
 
         .day-head {
             display: grid;
-            grid-template-columns: auto 1fr auto;
+            /* Two columns since the №01 marker came out: the day name takes the
+               slack, the sun times sit hard right. */
+            grid-template-columns: 1fr auto;
             gap: 14px;
             align-items: baseline;
             margin-bottom: 18px;
-        }
-
-        .day-num {
-            font-family: var(--sans);
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.18em;
-            text-transform: uppercase;
-            color: var(--faint);
-            font-feature-settings: "tnum";
         }
 
         .day-name {
@@ -561,7 +553,7 @@
             .pick-when { font-size: 20px; }
             .pick-verdict { font-size: 40px; }
             .day-head {
-                grid-template-columns: auto 1fr;
+                grid-template-columns: 1fr;
                 row-gap: 6px;
             }
             .day-sun { grid-column: 1 / -1; }
@@ -716,14 +708,11 @@
 
             const candidates = [];
             const dayBlocks = [];
-            let dayNum = 0;
 
             Object.entries(days).forEach(([dateStr, hours]) => {
                 const date = new Date(dateStr);
                 date.setHours(0, 0, 0, 0);
                 if (date < today) return;
-
-                dayNum += 1;
 
                 let primary, secondary;
                 if (date.getTime() === today.getTime())         { primary = 'Today';    secondary = date.toLocaleDateString('en-US', { weekday: 'long' }); }
@@ -741,7 +730,7 @@
                 });
 
                 dayBlocks.push({
-                    dayNum, primary, secondary, dateFormatted, isToday,
+                    primary, secondary, dateFormatted, isToday,
                     sun: sunByDay[dateStr], morning, evening
                 });
             });
@@ -782,7 +771,6 @@
                 html += `
                     <article class="day-entry">
                         <header class="day-head">
-                            <span class="day-num">№${String(d.dayNum).padStart(2, '0')}</span>
                             <h2 class="day-name${d.isToday ? ' is-today' : ''}">
                                 ${d.primary}${d.secondary ? ` <em>${d.secondary}</em>` : ''}
                                 <span class="day-date">${d.dateFormatted}</span>
