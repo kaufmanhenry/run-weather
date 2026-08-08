@@ -286,6 +286,12 @@
             animation: rise 0.4s ease-out both;
         }
 
+        /* The colophon draws its own top rule, so the last entry's bottom rule
+           left two hairlines stacked 24px apart at the foot of the page. The
+           colophon's is the one that separates the forecast from the credits;
+           this one has nothing left to divide. */
+        .day-entry:last-child { border-bottom: none; }
+
         .day-entry:nth-child(2) { animation-delay: 0.04s; }
         .day-entry:nth-child(3) { animation-delay: 0.08s; }
         .day-entry:nth-child(4) { animation-delay: 0.12s; }
@@ -384,6 +390,21 @@
             text-transform: uppercase;
             color: var(--muted);
             margin-bottom: 6px;
+        }
+
+        /* The hours the label actually covers. Set apart from the name so the
+           row still scans as "EARLY MORNING" first and answers "which hours?"
+           second, for the reader who stops to ask. */
+        .window-hours {
+            font-family: var(--mono);
+            font-weight: 400;
+            letter-spacing: 0.08em;
+            color: var(--faint);
+            margin-left: 3px;
+            /* Opt out of the label's uppercase: the meridiem is lowercase
+               everywhere else on the page ("5:45a" in the sun times), and
+               "5-9A" reads as a grade. */
+            text-transform: none;
         }
 
         .window-temp {
@@ -603,6 +624,25 @@
         const STORAGE_KEY = 'run-weather:last-location';
         const DEFAULT_LOCATION = '02131';
 
+        // The two windows the almanac reports on, defined once. "Early Morning"
+        // and "Evening" were bare labels with the hours buried in a filter
+        // expression, so the page never said what either one meant — you had to
+        // guess whether evening started at 4 or at 7. Both ends live here now,
+        // and the label renders its own range, so the two cannot drift apart.
+        // Hours are inclusive: `to: 9` covers the 9am hour.
+        const WINDOWS = {
+            morning: { label: 'Early Morning', from: 5,  to: 9  },
+            evening: { label: 'Evening',       from: 16, to: 20 },
+        };
+
+        const hourLabel = (h) => `${h % 12 === 0 ? 12 : h % 12}${h < 12 ? 'a' : 'p'}`;
+
+        // "5–9a" when both ends share a meridiem, "11a–1p" when they don't.
+        const windowRange = ({ from, to }) =>
+            (from < 12) === (to < 12)
+                ? `${hourLabel(from).slice(0, -1)}–${hourLabel(to)}`
+                : `${hourLabel(from)}–${hourLabel(to)}`;
+
         async function fetchWeather() {
             const input = document.getElementById('location');
             const btn = document.getElementById('goBtn');
@@ -693,8 +733,8 @@
                 const dateFormatted = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                 const isToday = date.getTime() === today.getTime();
 
-                const morning = summarize('Early Morning', hours.filter(h => h.hour >= 5 && h.hour <= 9));
-                const evening = summarize('Evening',       hours.filter(h => h.hour >= 16 && h.hour <= 20));
+                const morning = summarize(WINDOWS.morning, hours.filter(h => h.hour >= WINDOWS.morning.from && h.hour <= WINDOWS.morning.to));
+                const evening = summarize(WINDOWS.evening, hours.filter(h => h.hour >= WINDOWS.evening.from && h.hour <= WINDOWS.evening.to));
 
                 [morning, evening].forEach(w => {
                     if (w) candidates.push({ ...w, dayLabel: primary });
@@ -766,8 +806,10 @@
                     .replace(' AM', 'a').replace(' PM', 'p');
         }
 
-        function summarize(label, hours) {
+        function summarize(window, hours) {
             if (hours.length === 0) return null;
+            const label = window.label;
+            const range = windowRange(window);
             const avg = k => hours.reduce((s, h) => s + h[k], 0) / hours.length;
             const avgTemp = avg('temp');
             const avgFeels = avg('feelsLike');
@@ -777,14 +819,14 @@
             const avgHumidity = avg('humidity');
             const { score, rating } = getRating(avgTemp, avgFeels, maxPrecip, avgWind, avgDew);
             const note = getNote(avgTemp, avgFeels, maxPrecip, avgWind, avgDew);
-            return { label, avgTemp, avgFeels, maxPrecip, avgWind, avgDew, avgHumidity, score, rating, note };
+            return { label, range, avgTemp, avgFeels, maxPrecip, avgWind, avgDew, avgHumidity, score, rating, note };
         }
 
         function renderWindow(w) {
             return `
                 <div class="window ${w.rating.class}">
                     <div class="window-body">
-                        <p class="window-label">${w.label}</p>
+                        <p class="window-label">${w.label} <span class="window-hours">${w.range}</span></p>
                         <span class="window-temp">${Math.round(w.avgTemp)}°</span>
                         <p class="window-feels">feels ${Math.round(w.avgFeels)}°</p>
                         <p class="window-stats">
