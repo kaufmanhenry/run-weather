@@ -454,7 +454,6 @@
         .window.challenging .rating-word { color: var(--tough); }
         .window.skip        .rating-word { color: var(--skip); }
 
-        .rating-word::after { content: "."; color: currentColor; }
 
         /* ───────── States ───────── */
 
@@ -855,7 +854,7 @@
             score = Math.max(0, score);
 
             let rating;
-            if (score >= 85)      rating = { class: 'perfect',     label: 'Perfect' };
+            if (score >= 85)      rating = { class: 'perfect',     label: 'Prime' };
             else if (score >= 65) rating = { class: 'solid',       label: 'Solid' };
             else if (score >= 45) rating = { class: 'challenging', label: 'Tough' };
             else                  rating = { class: 'skip',        label: 'Skip' };
