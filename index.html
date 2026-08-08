@@ -255,18 +255,28 @@
             margin: 0 7px;
         }
 
-        .pick-score {
+        /* The verdict, not a number. This slot used to hold the 0-100 score, set
+           at 76px — which read as a measurement and was nothing of the kind: it
+           is a made-up index built from hardcoded penalties, so "92" and "89"
+           differ by nothing you could feel on a run. The rating word is the
+           honest form of the same judgement, and it matches how every other
+           window on the page states itself. */
+        .pick-verdict {
             font-family: var(--serif);
-            font-size: 76px;
+            font-size: 54px;
             font-style: italic;
-            font-weight: 300;
-            line-height: 0.85;
-            letter-spacing: -0.04em;
+            font-weight: 400;
+            line-height: 0.9;
+            letter-spacing: -0.03em;
             color: var(--ink);
             font-variation-settings: "opsz" 144, "SOFT" 90;
-            font-feature-settings: "tnum";
             text-align: right;
         }
+
+        .pick-verdict.perfect     { color: var(--perfect); }
+        .pick-verdict.solid       { color: var(--solid); }
+        .pick-verdict.challenging { color: var(--tough); }
+        .pick-verdict.skip        { color: var(--skip); }
 
         /* ───────── Day entry ───────── */
 
@@ -549,7 +559,7 @@
                 padding: 26px 18px 28px;
             }
             .pick-when { font-size: 20px; }
-            .pick-score { font-size: 60px; }
+            .pick-verdict { font-size: 40px; }
             .day-head {
                 grid-template-columns: auto 1fr;
                 row-gap: 6px;
@@ -747,7 +757,7 @@
                                 <span class="dot">·</span>${Math.round(best.avgWind)} mph
                             </p>
                         </div>
-                        <div class="pick-score">${best.score}</div>
+                        <div class="pick-verdict ${best.rating.class}">${best.rating.label}</div>
                     </section>
                 `;
             }
