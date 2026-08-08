@@ -1140,6 +1140,21 @@
         // end is treated more gently.
         const COLD_SLOPE = 1.6;
 
+        // Dew point, on the scale runners actually use: under 55 no effect,
+        // 60-65 uncomfortable and expect to slow, 65-70 hard, over 70 brutal.
+        //
+        // This rides on top of WBGT rather than being folded into it, which
+        // reverses an earlier call here. The argument for dropping it was that
+        // WBGT already carries humidity through its wet bulb term — true, but
+        // WBGT prices humidity for heat-illness risk, and at 65° there is no
+        // illness risk, so it barely moves. 65° at 90% humidity was scoring 94
+        // and reading Prime. What WBGT misses is evaporative impairment: sweat
+        // that will not evaporate makes the same pace cost more long before
+        // anything is dangerous. Different question, so a separate term.
+        const DEW_FREE = 55;
+        const DEW_SLOPE = 1.8;
+        const DEW_MAX_PENALTY = 32;
+
         // WBGT runs well below air temperature — a Boston August week tops out
         // at 86 and sits at a median of 72, where the heat index for the same
         // hours reads in the 90s. Thresholds that look conservative against a
@@ -1185,19 +1200,19 @@
                 if (h.wbgt > WBGT_FREE) {
                     score -= Math.min(WBGT_MAX_PENALTY, (h.wbgt - WBGT_FREE) * WBGT_SLOPE);
                 }
-                // No separate dew term here on purpose. WBGT already carries
-                // humidity through its wet bulb component, and charging for the
-                // same air twice is the exact mistake this scoring just came
-                // out of.
-            } else {
+            } else if (feels > IDEAL_HIGH) {
                 // Continuous, not stepped. The old ladder had four rungs, so
                 // 79° and 81° scored identically — survivable when the job was
                 // rubber-stamping a fixed block, useless now that the score has
                 // to rank hours and pick where a window starts and ends.
-                if (feels > IDEAL_HIGH) {
-                    score -= Math.min(MAX_THERMAL_PENALTY, (feels - IDEAL_HIGH) * COLD_SLOPE);
-                }
-                if (h.dewPoint > 55) score -= Math.min(15, (h.dewPoint - 55) * 0.75);
+                score -= Math.min(MAX_THERMAL_PENALTY, (feels - IDEAL_HIGH) * COLD_SLOPE);
+            }
+
+            // Damp air, both branches. Gated on it being warm enough to depend
+            // on evaporation in the first place — 55° and saturated is a fine
+            // run, 75° and saturated is not.
+            if (feels > IDEAL_HIGH && h.dewPoint > DEW_FREE) {
+                score -= Math.min(DEW_MAX_PENALTY, (h.dewPoint - DEW_FREE) * DEW_SLOPE);
             }
 
             score -= Math.min(35, h.precip * 0.45);
