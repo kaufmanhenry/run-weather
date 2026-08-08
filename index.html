@@ -1124,6 +1124,22 @@
         const IDEAL_LOW = 42;
         const IDEAL_HIGH = 60;
 
+        // One ceiling for every thermal term, hot or cold.
+        //
+        // Cold used to cap at 45 while heat capped at 72, which quietly made
+        // the page kinder in January than in July: a calm -20° morning could
+        // not score worse than Tough, and everything from 10° down scored the
+        // same, while an equivalently brutal summer hour went to Skip. Nothing
+        // here adapts to the season — the thresholds are absolute — so the two
+        // ends have to be able to reach the same verdicts.
+        const MAX_THERMAL_PENALTY = 72;
+
+        // Feels-like degrees are worth less than WBGT degrees because WBGT is a
+        // compressed scale: a Boston August spanning 60-95° of air maps to
+        // 57-86° of WBGT. The slopes differ for that reason, not because one
+        // end is treated more gently.
+        const COLD_SLOPE = 1.6;
+
         // WBGT runs well below air temperature — a Boston August week tops out
         // at 86 and sits at a median of 72, where the heat index for the same
         // hours reads in the 90s. Thresholds that look conservative against a
@@ -1142,7 +1158,7 @@
         // meant a 59° dawn came out Solid and no hour all week was ever Prime.
         const WBGT_FREE = 62;
         const WBGT_SLOPE = 3;
-        const WBGT_MAX_PENALTY = 72;
+        const WBGT_MAX_PENALTY = MAX_THERMAL_PENALTY;
 
         // Print the reading once it is worth a full rating band on its own.
         const WBGT_SHOW = 70;
@@ -1161,7 +1177,9 @@
             // Cold always reads from feels-like. WBGT is a heat metric and has
             // nothing to say below the comfortable band; wind chill is what a
             // body actually registers down there.
-            if (feels < IDEAL_LOW) score -= Math.min(45, (IDEAL_LOW - feels) * 1.6);
+            if (feels < IDEAL_LOW) {
+                score -= Math.min(MAX_THERMAL_PENALTY, (IDEAL_LOW - feels) * COLD_SLOPE);
+            }
 
             if (hasWbgt) {
                 if (h.wbgt > WBGT_FREE) {
@@ -1176,7 +1194,9 @@
                 // 79° and 81° scored identically — survivable when the job was
                 // rubber-stamping a fixed block, useless now that the score has
                 // to rank hours and pick where a window starts and ends.
-                if (feels > IDEAL_HIGH) score -= Math.min(45, (feels - IDEAL_HIGH) * 1.6);
+                if (feels > IDEAL_HIGH) {
+                    score -= Math.min(MAX_THERMAL_PENALTY, (feels - IDEAL_HIGH) * COLD_SLOPE);
+                }
                 if (h.dewPoint > 55) score -= Math.min(15, (h.dewPoint - 55) * 0.75);
             }
 
