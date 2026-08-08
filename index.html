@@ -845,8 +845,16 @@
             }
 
             const days = {};
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
+
+            // "Now" and "today" belong to the place being looked up, not to the
+            // reader. Shifting by the location's offset and reading the result
+            // through the UTC getters gives its wall clock, so checking Tokyo
+            // from Boston still says Today about Tokyo's today.
+            const offsetSec = weather.utc_offset_seconds || 0;
+            const nowThere = new Date(Date.now() + offsetSec * 1000);
+            const todayKey = nowThere.toISOString().slice(0, 10);
+            const tomorrowKey = new Date(nowThere.getTime() + 86400000).toISOString().slice(0, 10);
+            const hourThere = nowThere.getUTCHours();
 
             weather.hourly.time.forEach((time, i) => {
                 // Read the calendar day and hour straight off Open-Meteo's
@@ -882,27 +890,35 @@
                 });
             }
 
-            const tomorrow = new Date(today);
-            tomorrow.setDate(tomorrow.getDate() + 1);
-
             const candidates = [];
             const dayBlocks = [];
 
             Object.entries(days).forEach(([dateStr, hours]) => {
+                // ISO dates sort and compare correctly as plain strings, which
+                // sidesteps another round trip through Date.
+                if (dateStr < todayKey) return;
                 const date = dateFromLocalKey(dateStr);
-                if (date < today) return;
+                const isTodayThere = dateStr === todayKey;
 
                 let primary, secondary;
-                if (date.getTime() === today.getTime())         { primary = 'Today';    secondary = date.toLocaleDateString('en-US', { weekday: 'long' }); }
-                else if (date.getTime() === tomorrow.getTime()) { primary = 'Tomorrow'; secondary = date.toLocaleDateString('en-US', { weekday: 'long' }); }
-                else                                            { primary = date.toLocaleDateString('en-US', { weekday: 'long' }); secondary = ''; }
+                if (isTodayThere)                    { primary = 'Today';    secondary = date.toLocaleDateString('en-US', { weekday: 'long' }); }
+                else if (dateStr === tomorrowKey)    { primary = 'Tomorrow'; secondary = date.toLocaleDateString('en-US', { weekday: 'long' }); }
+                else                                 { primary = date.toLocaleDateString('en-US', { weekday: 'long' }); secondary = ''; }
 
                 const dateFormatted = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                const isToday = date.getTime() === today.getTime();
+                const isToday = isTodayThere;
+
+                // Hours already spent are not a recommendation. At half six in
+                // the evening the page was still offering this morning's 5-10a
+                // as somewhere to run.
+                const ahead = isTodayThere ? hours.filter(h => h.hour >= hourThere) : hours;
 
                 const sun = sunByDay[dateStr];
-                const morning = summarize(BANDS.morning, sun, hours);
-                const evening = summarize(BANDS.evening, sun, hours);
+                const morning = summarize(BANDS.morning, sun, ahead);
+                const evening = summarize(BANDS.evening, sun, ahead);
+
+                // A day whose windows have all passed has nothing left to say.
+                if (!morning && !evening) return;
 
                 [morning, evening].forEach(w => {
                     if (w) candidates.push({ ...w, dayLabel: primary });
@@ -1108,21 +1124,34 @@
         const IDEAL_LOW = 42;
         const IDEAL_HIGH = 60;
 
-        // WBGT risk ladder (ACSM): under 65 unrestricted, 65-73 low, 73-82
-        // moderate, 82-87 high, over 87 extreme.
+        // WBGT runs well below air temperature — a Boston August week tops out
+        // at 86 and sits at a median of 72, where the heat index for the same
+        // hours reads in the 90s. Thresholds that look conservative against a
+        // thermometer are inert against this.
         //
-        // Note how much lower these run than air temperature — a Boston August
-        // week tops out at 86 and sits at a median of 72, where the heat index
-        // for the same hours reads in the 90s. Calibrated against the observed
-        // range so the bands land where the guidance puts them: 70 is Prime,
-        // 76 Solid, 82 Tough, 87 and up Skip.
-        const WBGT_FREE = 63;
-        const WBGT_SLOPE = 2.8;
-        const WBGT_MAX_PENALTY = 68;
+        // Tuned to run quality, not to the ACSM risk ladder. Those bands are
+        // about heat casualties in organised sport with rest breaks, and a
+        // morning that is safe by that measure can still be a bad run: 74-77°
+        // air at a 72° dew point is survivable and miserable. Sighted by
+        // holding the WBGT path against the feels-like fallback, which already
+        // scored that morning Tough while WBGT was calling it Solid.
+        //
+        // Roughly: 65 Prime, 72 Solid, 75 Tough, 82 and up Skip. The free point
+        // sits at 62 rather than 60 so a genuinely good morning can still reach
+        // Prime — summer WBGT rarely drops below 60, and a curve starting there
+        // meant a 59° dawn came out Solid and no hour all week was ever Prime.
+        const WBGT_FREE = 62;
+        const WBGT_SLOPE = 3;
+        const WBGT_MAX_PENALTY = 72;
 
-        // Moderate risk, the point where the number starts telling you
-        // something you would change your plans over.
-        const WBGT_SHOW = 73;
+        // Print the reading once it is worth a full rating band on its own.
+        const WBGT_SHOW = 70;
+
+        // The note stays on the published ACSM lines — moderate risk at 73,
+        // high at 82, extreme at 87. The verdict says how the run will go; the
+        // note says what the guidance calls it. They are different questions
+        // and should not share a number.
+        const WBGT_CAUTION = 73;
 
         function getRating(h) {
             let score = 100;
@@ -1185,7 +1214,7 @@
             else if (hasWbgt) {
                 if (w.wbgt >= 87)      notes.push('dangerous heat');
                 else if (w.wbgt >= 82) notes.push('heat, ease off');
-                else if (w.wbgt >= WBGT_SHOW) notes.push('heat caution');
+                else if (w.wbgt >= WBGT_CAUTION) notes.push('heat caution');
             }
             else if (w.feels.max > 80) notes.push('heat');
 
