@@ -1,3 +1,6 @@
-
-# gstack session artifacts (browse daemon state, local tokens) — never committed.
+# gstack session artifacts: browse daemon state, pids, and a local auth token.
+# These churn on every agent run and one of them is a secret, so they have no
+# business in a public repo.
 .gstack/
+
+.DS_Store
