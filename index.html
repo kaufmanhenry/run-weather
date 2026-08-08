@@ -872,8 +872,15 @@
             else if (wind > 15) notes.push('breezy');
             const feelsDiff = feels - temp;
             if (feelsDiff < -10) notes.push('wind chill');
-            else if (feelsDiff > 10) notes.push('humidity factor');
-            if (dew > 70) notes.push('oppressive humidity');
+            // Was "humidity factor" — a "factor" is not a thing you feel, and it
+            // sat next to concrete neighbours like "muggy" and "breezy". This
+            // branch fires when the heat index runs 10°+ over the air
+            // temperature, so name that.
+            else if (feelsDiff > 10) notes.push('runs hotter');
+            // "oppressive" is the National Weather Service's own word for a dew
+            // point this high, so it stays — but "oppressive humidity" said
+            // humidity twice, given the sibling note is "muggy".
+            if (dew > 70) notes.push('oppressive');
             else if (dew > 65) notes.push('muggy');
             return notes.length > 0 ? notes.join(' · ') : null;
         }
