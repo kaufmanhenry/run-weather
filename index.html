@@ -357,14 +357,14 @@
             gap: 18px;
             align-items: start;
             padding-left: 14px;
-            border-left: 2px solid transparent;
-            transition: border-color 0.2s;
+            /* One neutral rule, not a rating-coloured one. The verdict word sits
+               in this same row already carrying the rating in that colour, so a
+               tinted left border was a second, weaker copy of the same signal —
+               and a colour-coded left border on a card is the most recognisable
+               tell in the genre. The rule stays for structure; colour is the
+               verdict's job alone. */
+            border-left: 2px solid var(--hairline);
         }
-
-        .window.perfect     { border-left-color: var(--perfect); }
-        .window.solid       { border-left-color: var(--solid); }
-        .window.challenging { border-left-color: var(--tough); }
-        .window.skip        { border-left-color: var(--skip); }
 
         .window-label {
             font-family: var(--sans);
