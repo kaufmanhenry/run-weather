@@ -69,10 +69,19 @@
             font-variation-settings: "opsz" 14, "SOFT" 40;
             background: var(--paper);
             color: var(--ink);
-            min-height: 100vh;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             line-height: 1.4;
+
+            /* Sticky footer, same as the rest of the suite. min-height alone
+               was not enough: the body filled the screen but the suite bar sat
+               straight after the content, so a page that had not loaded its
+               forecast yet — or had failed to find the location — left the bar
+               floating a third of the way down with dead space beneath it. */
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            min-height: 100dvh;
         }
 
         ::selection { background: var(--ink); color: var(--paper); }
@@ -81,6 +90,10 @@
             max-width: 620px;
             margin: 0 auto;
             padding: 0 24px;
+            /* Grows into the leftover so the suite bar lands on the bottom
+               edge; basis auto so a full week keeps its natural height. */
+            flex: 1 0 auto;
+            width: 100%;
         }
 
         /* ───────── Masthead ───────── */
