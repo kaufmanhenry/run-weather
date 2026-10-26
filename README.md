@@ -7,7 +7,8 @@ An editorial almanac for the distance runner. Find the best training windows in 
 ## Features
 
 - **Runner-specific verdicts** — Perfect / Solid / Tough / Skip, not generic weather labels
-- **"The Pick"** — the single best window of the week, answered up top
+- **"The Pick"** — the single best window of the week, set as the page's headline
+- **At a glance** — every morning and evening of the week in one ruled table, each linking to its day
 - **Morning + evening windows** per day (5–9am, 4–8pm)
 - **Sunrise / sunset** on every day card
 - **Dew point, wind, feels-like, rain** — the metrics runners actually use
@@ -17,10 +18,9 @@ An editorial almanac for the distance runner. Find the best training windows in 
 
 ## Design
 
-- **Analog-editorial** aesthetic on a warm paper palette
-- **Fraunces** (display, numerics, rating words) paired with **Instrument Sans** (micro UI, labels)
-- Hierarchy driven by type weight and hairline rules — no card chrome
-- Italic serifs and small-caps sans for an almanac feel
+- The suite's **Almanac** page pattern (see `SUITE.md` in the setlist repo): dateline masthead, the answer as the headline, Roman-numbered sections over hairlines
+- **Fraunces** (display, numerics, rating words), **DM Sans** (body), **JetBrains Mono** (labels and dateline)
+- Warm paper palette; hierarchy from type and hairline rules, no card chrome
 
 ## Rating System
 

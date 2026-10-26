@@ -87,7 +87,7 @@
         ::selection { background: var(--ink); color: var(--paper); }
 
         .container {
-            max-width: 620px;
+            max-width: 1040px;
             margin: 0 auto;
             padding: 0 24px;
             /* Grows into the leftover so the suite bar lands on the bottom
@@ -96,62 +96,70 @@
             width: 100%;
         }
 
-        /* ───────── Masthead ───────── */
+        /* ───────── Masthead ─────────
+           The suite's almanac masthead (SUITE.md, "Page pattern"): a mono
+           dateline, the name in Fraunces, an italic line saying what the page
+           is for, and a double rule. The old one was a 32px wordmark beside a
+           tagline, and the page's real answer sat in a tinted box below it. */
 
-        .masthead {
-            padding: 44px 0 20px;
-            border-bottom: 1px solid var(--hairline);
+        .masthead { padding-top: 12px; text-align: center; }
+
+        .dateline {
             display: flex;
-            align-items: baseline;
+            align-items: center;
             justify-content: space-between;
-            gap: 16px;
+            gap: 12px;
+            font-family: var(--mono);
+            font-size: 11px;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--muted);
+            min-height: 28px;
         }
 
-        .mark {
-            display: flex;
-            align-items: baseline;
-            gap: 10px;
-        }
+        .dateline .short { display: none; }
 
         .title {
             font-family: var(--serif);
-            font-size: 32px;
-            font-weight: 500;
-            letter-spacing: -0.025em;
-            line-height: 1;
-            font-variation-settings: "opsz" 96, "SOFT" 60;
+            font-size: 58px;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+            font-variation-settings: "opsz" 144, "SOFT" 40;
             color: var(--ink);
+            margin-top: 6px;
         }
 
-        .title em {
+        .standfirst-sm {
+            font-family: var(--serif);
             font-style: italic;
-            font-weight: 400;
-            color: var(--accent);
-        }
-
-        .tagline {
-            font-family: var(--sans);
-            font-size: 11px;
-            font-weight: 500;
-            letter-spacing: 0.14em;
-            text-transform: uppercase;
+            font-size: 15px;
             color: var(--muted);
+            margin-top: 4px;
         }
 
-        /* ───────── Search ───────── */
+        .double-rule {
+            margin-top: 14px;
+            height: 5px;
+            border-top: 3px double rgba(26, 24, 19, 0.28);
+            border-bottom: 1px solid var(--hairline);
+        }
+
+        /* ───────── Search ─────────
+           Set as a line of the dateline's type rather than a form: the place
+           is the edition's subject, so it reads as one. */
 
         .search {
-            padding: 18px 0;
+            padding: 10px 0;
             display: flex;
-            gap: 14px;
+            gap: 12px;
             align-items: center;
             border-bottom: 1px solid var(--hairline);
         }
 
         .search-label {
-            font-family: var(--sans);
+            font-family: var(--mono);
             font-size: 10px;
-            font-weight: 600;
             letter-spacing: 0.18em;
             text-transform: uppercase;
             color: var(--muted);
@@ -159,10 +167,12 @@
         }
 
         input {
-            flex: 1;
+            flex: 0 1 12rem;
+            min-width: 0;
             padding: 4px 0;
             background: transparent;
             border: none;
+            border-bottom: 1px solid transparent;
             color: var(--ink);
             font-family: var(--serif);
             font-size: 16px;
@@ -171,139 +181,215 @@
             outline: none;
         }
 
+        input:focus { border-bottom-color: var(--ink); }
+
         input::placeholder { color: var(--faint); font-style: italic; }
+
+        .place {
+            flex: 1;
+            min-width: 0;
+            text-align: right;
+            font-family: var(--mono);
+            font-size: 10px;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
 
         button {
             background: transparent;
             border: none;
             color: var(--ink);
             cursor: pointer;
-            font-family: var(--sans);
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.18em;
-            text-transform: uppercase;
-            padding: 6px 10px;
-            border: 1px solid var(--ink);
-            border-radius: 999px;
-            transition: background 0.15s, color 0.15s;
-        }
-
-        button:hover {
-            background: var(--ink);
-            color: var(--paper);
-        }
-
-        button:disabled { opacity: 0.4; cursor: not-allowed; background: transparent; color: var(--ink); }
-
-        /* ───────── Issue strip ───────── */
-
-        .issue-strip {
-            padding: 14px 0;
-            font-family: var(--sans);
+            font-family: var(--mono);
             font-size: 10px;
-            font-weight: 500;
             letter-spacing: 0.18em;
             text-transform: uppercase;
-            color: var(--muted);
-            display: flex;
-            justify-content: space-between;
-            gap: 12px;
-            border-bottom: 1px solid var(--hairline);
+            /* 44px hit area, set as text like the rest of the dateline. */
+            min-height: 44px;
+            padding: 0 4px;
+            text-decoration: underline;
+            text-underline-offset: 4px;
+            text-decoration-color: var(--hairline);
+            transition: text-decoration-color 0.15s;
         }
 
-        .issue-strip .sep { color: var(--faint); margin: 0 8px; }
+        button:hover { text-decoration-color: var(--ink); }
 
-        /* ───────── The Pick ───────── */
+        button:disabled { opacity: 0.4; cursor: not-allowed; }
 
-        .pick {
-            margin: 0 -24px;
-            padding: 32px 24px 36px;
-            background: var(--paper-deep);
-            border-top: 1px solid var(--hairline);
-            border-bottom: 1px solid var(--hairline);
+        /* ───────── Front ─────────
+           Lead on the left, the week at a glance beside it over a vertical
+           hairline; one column on a phone, lead first. */
+
+        .front {
             display: grid;
-            grid-template-columns: 1fr auto;
-            gap: 20px;
-            align-items: end;
+            grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+            border-bottom: 1px solid var(--hairline);
             animation: rise 0.5s ease-out both;
         }
 
-        .pick-eyebrow {
-            font-family: var(--sans);
-            font-size: 10px;
-            font-weight: 600;
-            letter-spacing: 0.22em;
+        .front > .lead { padding: 34px 36px 38px 0; }
+        .front > .side { padding: 30px 0 30px 36px; border-left: 1px solid var(--hairline); }
+
+        /* ───────── The Pick, as the lead ─────────
+           The week's best window is the page's one answer, so it is the h1 and
+           the largest type on the page, closing on a full stop in the verdict's
+           colour. It used to be a 24px line in a tinted panel. */
+
+        .kicker {
+            font-family: var(--mono);
+            font-size: 11px;
+            letter-spacing: 0.18em;
             text-transform: uppercase;
-            color: var(--accent);
-            margin-bottom: 10px;
+            color: var(--muted);
         }
 
-        .pick-when {
+        .lead h1 {
             font-family: var(--serif);
-            font-size: 24px;
+            font-size: 88px;
             font-weight: 500;
-            font-variation-settings: "opsz" 60, "SOFT" 50;
-            line-height: 1.15;
-            letter-spacing: -0.015em;
-            margin-bottom: 8px;
+            line-height: 0.95;
+            letter-spacing: -0.025em;
+            font-variation-settings: "opsz" 144, "SOFT" 50;
+            margin-top: 14px;
         }
 
-        .pick-when em {
+        .lead h1 em {
+            display: block;
             font-style: italic;
             font-weight: 400;
             color: var(--muted);
         }
 
-        .pick-stats {
-            font-family: var(--sans);
-            font-size: 12px;
-            color: var(--muted);
-            font-feature-settings: "tnum";
-            letter-spacing: 0.01em;
-        }
-
-        .pick-stats .dot {
-            color: var(--faint);
-            margin: 0 7px;
-        }
-
-        /* The verdict, not a number. This slot used to hold the 0-100 score, set
-           at 76px — which read as a measurement and was nothing of the kind: it
-           is a made-up index built from hardcoded penalties, so "92" and "89"
-           differ by nothing you could feel on a run. The rating word is the
-           honest form of the same judgement, and it matches how every other
-           window on the page states itself. */
-        .pick-verdict {
+        .lead .standfirst {
             font-family: var(--serif);
-            font-size: 54px;
-            font-style: italic;
-            font-weight: 400;
-            line-height: 0.9;
-            letter-spacing: -0.03em;
-            color: var(--ink);
-            font-variation-settings: "opsz" 144, "SOFT" 90;
-            text-align: right;
+            font-size: 21px;
+            line-height: 1.35;
+            color: var(--muted);
+            font-variation-settings: "opsz" 24, "SOFT" 50;
+            margin-top: 20px;
+            max-width: 30rem;
         }
 
-        .pick-verdict.perfect     { color: var(--perfect); }
-        .pick-verdict.solid       { color: var(--solid); }
-        .pick-verdict.challenging { color: var(--tough); }
-        .pick-verdict.skip        { color: var(--skip); }
+        .lead .standfirst .tnum { font-feature-settings: "tnum"; }
+
+        /* Verdict colours, shared by the kicker, the full stop and the table. */
+        .perfect     .v, .v.perfect     { color: var(--perfect); }
+        .solid       .v, .v.solid       { color: var(--solid); }
+        .challenging .v, .v.challenging { color: var(--tough); }
+        .skip        .v, .v.skip        { color: var(--skip); }
+
+        /* ───────── Numbered sections ───────── */
+
+        .section-head {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+            padding-bottom: 8px;
+            margin-bottom: 14px;
+            border-bottom: 1px solid var(--hairline);
+            font-family: var(--serif);
+            font-size: 13px;
+            font-weight: 500;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        .section-head .num { color: var(--accent); }
+
+        .section-head .aside {
+            margin-left: auto;
+            font-family: var(--mono);
+            font-size: 10px;
+            letter-spacing: 0.08em;
+            text-transform: none;
+            color: var(--faint);
+        }
+
+        /* ───────── At a glance ─────────
+           Every window in the week as a ruled ledger, so the whole week can be
+           read in one look before the detail below. Each row links down to
+           its day. */
+
+        .glance { width: 100%; border-collapse: collapse; }
+
+        .glance th {
+            font-family: var(--mono);
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: var(--faint);
+            text-align: left;
+            padding: 0 0 6px;
+        }
+
+        .glance td {
+            border-top: 1px solid var(--hairline);
+            padding: 7px 0;
+            font-family: var(--serif);
+            font-size: 16px;
+        }
+
+        .glance td:first-child a {
+            color: var(--ink);
+            text-decoration: none;
+        }
+
+        .glance td:first-child a:hover { text-decoration: underline; text-decoration-color: var(--hairline); text-underline-offset: 4px; }
+
+        .glance .v { font-style: italic; text-decoration: none; }
+
+        .glance .none { color: var(--faint); }
+
+        /* The pick's cell: a small mark rather than a fill, so the row still
+           reads as one line of the table. */
+        .glance .is-pick::after {
+            content: " ◆";
+            font-style: normal;
+            font-size: 9px;
+            color: var(--accent);
+            vertical-align: 2px;
+        }
+
+        .glance-note {
+            margin-top: 10px;
+            font-family: var(--serif);
+            font-style: italic;
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .glance-note .mark { font-style: normal; font-size: 9px; color: var(--accent); vertical-align: 1px; }
+
+        /* ───────── Day by day ───────── */
+
+        .days-section { padding-top: 34px; }
+
+        .days {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            column-gap: 48px;
+        }
 
         /* ───────── Day entry ───────── */
 
         .day-entry {
-            padding: 22px 0 24px;
-            border-bottom: 1px solid var(--hairline);
+            padding: 20px 0 24px;
+            border-top: 1px solid var(--hairline);
             animation: rise 0.4s ease-out both;
+            scroll-margin-top: 16px;
         }
 
-        /* The colophon draws its own top rule, so the last entry's bottom rule
-           left two hairlines stacked 24px apart at the foot of the page. The
-           colophon's is the one that separates the forecast from the credits;
-           this one has nothing left to divide. */
-        .day-entry:last-child { border-bottom: none; }
+        /* The section heading's rule already sits above the first row; a
+           second one 14px under it says nothing. Two columns on desktop, so
+           the first two. */
+        .day-entry:nth-child(-n+2) { border-top: none; padding-top: 4px; }
 
         .day-entry:nth-child(2) { animation-delay: 0.04s; }
         .day-entry:nth-child(3) { animation-delay: 0.08s; }
@@ -517,35 +603,29 @@
         .error::before { content: "— "; color: var(--faint); }
         .error::after  { content: " —"; color: var(--faint); }
 
-        /* ───────── Colophon ───────── */
+        /* ───────── Credit ─────────
+           Not a colophon (the suite dropped those): the forecast's sources,
+           which Open-Meteo's licence asks us to name. */
 
-        .colophon {
-            padding: 40px 0 56px;
-            text-align: center;
+        .credit {
+            padding: 28px 0 44px;
             border-top: 1px solid var(--hairline);
-            margin-top: 24px;
-        }
-
-        .colophon-sub {
-            font-family: var(--sans);
+            margin-top: 8px;
+            font-family: var(--mono);
             font-size: 10px;
-            font-weight: 500;
-            letter-spacing: 0.2em;
+            letter-spacing: 0.16em;
             text-transform: uppercase;
             color: var(--muted);
         }
 
-        .colophon-sub a {
+        .credit a {
             color: var(--muted);
-            text-decoration: none;
-            border-bottom: 1px solid var(--hairline);
-            padding-bottom: 1px;
-            transition: color 0.2s, border-color 0.2s;
+            text-decoration: underline;
+            text-decoration-color: var(--hairline);
+            text-underline-offset: 3px;
         }
 
-        .colophon-sub a:hover { color: var(--ink); border-color: var(--ink); }
-
-        .colophon-sub .sep { color: var(--faint); margin: 0 8px; }
+        .credit a:hover { color: var(--ink); text-decoration-color: var(--ink); }
 
         /* ───────── Motion ───────── */
 
@@ -554,21 +634,25 @@
             to   { opacity: 1; transform: translateY(0);   }
         }
 
+        /* Phone: one column, in order of use. The pick first, then the week
+           at a glance, then the detail. */
+        @media (max-width: 760px) {
+            .front { grid-template-columns: minmax(0, 1fr); }
+            .front > .lead { padding: 28px 0 30px; }
+            .front > .side { padding: 0 0 26px; border-left: none; }
+            .days { grid-template-columns: minmax(0, 1fr); }
+            .day-entry:nth-child(2) { border-top: 1px solid var(--hairline); padding-top: 20px; }
+            .days-section { padding-top: 6px; }
+        }
+
         @media (max-width: 480px) {
             .container { padding: 0 18px; }
-            .masthead {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 6px;
-                padding: 32px 0 16px;
-            }
-            .pick {
-                grid-template-columns: 1fr auto;
-                margin: 0 -18px;
-                padding: 26px 18px 28px;
-            }
-            .pick-when { font-size: 20px; }
-            .pick-verdict { font-size: 40px; }
+            .dateline .long, .standfirst-sm { display: none; }
+            .dateline .short { display: inline; }
+            .title { font-size: 36px; margin-top: 2px; }
+            .lead h1 { font-size: 64px; }
+            .lead .standfirst { font-size: 18px; }
+            .place { display: none; }
             .day-head {
                 grid-template-columns: 1fr;
                 row-gap: 6px;
@@ -590,33 +674,35 @@
     <div class="container">
 
         <header class="masthead">
-            <div class="mark">
-                <h1 class="title">Run <em>Weather</em></h1>
+            <div class="dateline">
+                <span class="long">A setlist.run almanac</span>
+                <span class="long tnum" id="dateline-long"></span>
+                <span class="short tnum" id="dateline-short"></span>
+                <span>Week ahead</span>
             </div>
-            <p class="tagline">A Weekly Almanac</p>
+            <div class="title">Run Weather</div>
+            <p class="standfirst-sm">The best windows to run in the seven days ahead</p>
+            <div class="double-rule"></div>
         </header>
 
         <div class="search">
-            <span class="search-label">Location</span>
+            <label class="search-label" for="location">Location</label>
             <input
                 type="text"
                 id="location"
-                placeholder="enter a city or postal code…"
+                placeholder="a city or postal code…"
                 onkeydown="if(event.key === 'Enter') fetchWeather()"
                 autocomplete="off"
                 spellcheck="false"
             >
             <button id="goBtn" onclick="fetchWeather()">Read</button>
+            <span class="place" id="place"></span>
         </div>
 
         <div id="results"></div>
 
-        <footer class="colophon">
-            <p class="colophon-sub">
-                Data, <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a><span id="nws-credit"></span>
-                <span class="sep">·</span>
-                Set in <a href="https://fonts.google.com/specimen/Fraunces" target="_blank" rel="noopener">Fraunces</a>
-            </p>
+        <footer class="credit">
+            Forecast from <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a><span id="nws-credit"></span>
         </footer>
     </div>
 
@@ -873,6 +959,7 @@
                 const nws = await fetchNws(latitude, longitude, weather.utc_offset_seconds || 0);
 
                 localStorage.setItem(STORAGE_KEY, location);
+                document.getElementById('place').textContent = label;
                 displayForecast(weather, label, nws);
             } catch (error) {
                 results.innerHTML = `<div class="error">${error.message}</div>`;
@@ -982,12 +1069,18 @@
                 // A day whose windows have all passed has nothing left to say.
                 if (!morning && !evening) return;
 
+                // The window itself, not a copy, so the table can find the
+                // pick by identity.
                 [morning, evening].forEach(w => {
-                    if (w) candidates.push({ ...w, dayLabel: primary });
+                    if (w) { w.dayLabel = primary; candidates.push(w); }
                 });
 
+                const short = isTodayThere || dateStr === tomorrowKey
+                    ? primary
+                    : date.toLocaleDateString('en-US', { weekday: 'short' });
+
                 dayBlocks.push({
-                    primary, secondary, dateFormatted, isToday,
+                    dateStr, primary, secondary, short, dateFormatted, isToday,
                     sun, morning, evening
                 });
             });
@@ -998,40 +1091,39 @@
                 || candidates.sort((a, b) => b.score - a.score)[0];
 
             const updatedAt = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-            const issueDate = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
-            let html = `
-                <div class="issue-strip">
-                    <span>${locationName}</span>
-                    <span>${issueDate} <span class="sep">·</span>${updatedAt}</span>
-                </div>
-            `;
+            let html = '';
 
             if (best) {
                 html += `
-                    <section class="pick">
-                        <div>
-                            <p class="pick-eyebrow">The Pick</p>
-                            <p class="pick-when">${best.dayLabel} <em>${best.hoursText}</em></p>
-                            <p class="pick-stats">
-                                ${spanText(best.temp, '°')} feels ${spanText(best.feels, '°')}
-                                <span class="dot">·</span>${Math.round(best.precip)}% rain
-                                <span class="dot">·</span>${Math.round(best.wind)} mph
-                            </p>
-                        </div>
-                        <div class="pick-verdict ${best.rating.class}">${best.rating.label}</div>
-                    </section>
+                    <div class="front">
+                        <section class="lead ${best.rating.class}">
+                            <p class="kicker">The pick <span class="sep">·</span> <span class="v">${best.rating.label}</span></p>
+                            <h1>${best.dayLabel}<em>${best.hoursText}<span class="v">.</span></em></h1>
+                            <p class="standfirst">${pickStandfirst(best, candidates)}</p>
+                        </section>
+                        <section class="side">
+                            ${sectionHead(1, 'At a glance')}
+                            ${renderGlance(dayBlocks, best)}
+                        </section>
+                    </div>
                 `;
             }
 
+            html += `
+                <section class="days-section">
+                    ${sectionHead(best ? 2 : 1, 'Day by day', `Updated ${updatedAt}`)}
+                    <div class="days">
+            `;
+
             dayBlocks.forEach(d => {
                 html += `
-                    <article class="day-entry">
+                    <article class="day-entry" id="day-${d.dateStr}">
                         <header class="day-head">
-                            <h2 class="day-name${d.isToday ? ' is-today' : ''}">
+                            <h3 class="day-name${d.isToday ? ' is-today' : ''}">
                                 ${d.primary}${d.secondary ? ` <em>${d.secondary}</em>` : ''}
                                 <span class="day-date">${d.dateFormatted}</span>
-                            </h2>
+                            </h3>
                             ${d.sun ? `<span class="day-sun"><span class="arrow">↑</span>${formatSunTime(d.sun.sunrise)}<span class="arrow">↓</span>${formatSunTime(d.sun.sunset)}</span>` : ''}
                         </header>
                         <div class="windows">
@@ -1042,7 +1134,58 @@
                 `;
             });
 
+            html += `</div></section>`;
             results.innerHTML = html;
+        }
+
+        const NUMERALS = ['I', 'II', 'III', 'IV', 'V', 'VI'];
+
+        // Fraunces small caps over a hairline, the numeral in the accent
+        // (SUITE.md, "Numbered sections").
+        function sectionHead(n, title, aside = '') {
+            return `<h2 class="section-head"><span class="num">${NUMERALS[n - 1]}.</span><span>${title}</span>${
+                aside ? `<span class="aside">${aside}</span>` : ''}</h2>`;
+        }
+
+        // What the pick is like, then where it stands in the week: the only
+        // Prime window and one of eight are different news.
+        function pickStandfirst(best, all) {
+            const prime = all.filter(w => w.rating.class === 'perfect').length;
+            const reading = `<span class="tnum">${spanText(best.temp, '°')}</span>, feels <span class="tnum">${spanText(best.feels, '°')}</span>, `
+                + `<span class="tnum">${Math.round(best.precip)}%</span> rain, <span class="tnum">${Math.round(best.wind)}</span> mph.`;
+            const standing = best.rating.class !== 'perfect'
+                ? 'Nothing this week rates Prime; this is the best of it.'
+                : prime === 1
+                    ? 'The only Prime window this week.'
+                    : `The best of <span class="tnum">${prime}</span> Prime windows this week.`;
+            const note = best.note
+                ? ` ${best.note.charAt(0).toUpperCase()}${best.note.slice(1).replaceAll(' · ', ', ')}.`
+                : '';
+            return `${reading} ${standing}${note}`;
+        }
+
+        // The week as a ruled table, a row a day, so it reads in one look
+        // before the detail. A window already past, or in the dark, is a dash.
+        function renderGlance(dayBlocks, best) {
+            const cell = (w, href) => w
+                ? `<td><a class="v ${w.rating.class}${w === best ? ' is-pick' : ''}" href="${href}">${w.rating.label}</a></td>`
+                : '<td class="none">—</td>';
+            const rows = dayBlocks.map(d => {
+                const href = `#day-${d.dateStr}`;
+                return `
+                <tr>
+                    <td><a href="${href}">${d.short}</a></td>
+                    ${cell(d.morning, href)}
+                    ${cell(d.evening, href)}
+                </tr>`;
+            }).join('');
+            return `
+                <table class="glance">
+                    <thead><tr><th></th><th>Morning</th><th>Evening</th></tr></thead>
+                    <tbody>${rows}</tbody>
+                </table>
+                <p class="glance-note"><span class="mark">◆</span> the pick. Each day links to its detail below.</p>
+            `;
         }
 
         function formatSunTime(iso) {
@@ -1339,7 +1482,20 @@
             return notes.length > 0 ? notes.join(' · ') : null;
         }
 
+        // The dateline is the reader's day, like the masthead of any paper.
+        function setDateline() {
+            const now = new Date();
+            const start = new Date(now.getFullYear(), 0, 1, 12);
+            const noon = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12);
+            const day = Math.round((noon - start) / 86400000) + 1;
+            document.getElementById('dateline-long').textContent =
+                `${now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })} · Day ${day}`;
+            document.getElementById('dateline-short').textContent =
+                `${now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} · Day ${day}`;
+        }
+
         window.onload = () => {
+            setDateline();
             const input = document.getElementById('location');
             input.value = localStorage.getItem(STORAGE_KEY) || DEFAULT_LOCATION;
             if (input.value) fetchWeather();
