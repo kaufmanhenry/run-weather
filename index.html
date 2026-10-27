@@ -1502,13 +1502,10 @@
         // The dateline is the reader's day, like the masthead of any paper.
         function setDateline() {
             const now = new Date();
-            const start = new Date(now.getFullYear(), 0, 1, 12);
-            const noon = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12);
-            const day = Math.round((noon - start) / 86400000) + 1;
             document.getElementById('dateline-long').textContent =
-                `${now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })} · Day ${day}`;
+                `${now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}`;
             document.getElementById('dateline-short').textContent =
-                `${now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} · Day ${day}`;
+                `${now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}`;
         }
 
         window.onload = () => {
