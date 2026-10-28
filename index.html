@@ -51,7 +51,7 @@
         /* Suite bar — the one cross-suite element, at the foot of every app in
            the family. It used to sit at the top; down here it stays reachable
            without making another product's name the first thing on the page,
-           so Run Weather leads with its own masthead.
+           so Run Weather leads with its own header.
 
            Deliberately dark on this light page: the bar is chrome belonging to
            setlist.run, not to Run Weather, so it stays identical across the
@@ -113,119 +113,82 @@
             width: 100%;
         }
 
-        /* ───────── Masthead ─────────
-           The suite's almanac masthead (SUITE.md, "Page pattern"): a mono
-           dateline, the name in Fraunces, an italic line saying what the page
-           is for, and a double rule. The old one was a 32px wordmark beside a
-           tagline, and the page's real answer sat in a tinted box below it. */
+        /* ───────── Header ─────────
+           The suite header (SUITE.md): the app's name on the left, the place
+           on the right. It replaced the almanac masthead (dateline, centred
+           title, italic standfirst, double rule) on 2026-10-28. */
 
-        .masthead { padding-top: 12px; text-align: center; }
-
-        .dateline {
+        .masthead {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 12px;
-            font-family: var(--mono);
-            font-size: 11px;
-            letter-spacing: 0.18em;
-            text-transform: uppercase;
-            color: var(--muted);
-            min-height: 28px;
+            gap: 16px;
+            height: 64px;
         }
-
-        .dateline .short { display: none; }
 
         .title {
             font-family: var(--serif);
-            font-size: 58px;
+            font-size: 22px;
             font-weight: 600;
-            letter-spacing: -0.02em;
-            line-height: 1.1;
-            font-variation-settings: "opsz" 144, "SOFT" 40;
+            letter-spacing: -0.01em;
+            font-variation-settings: "opsz" 36, "SOFT" 40;
             color: var(--ink);
-            margin-top: 6px;
         }
-
-        .standfirst-sm {
-            font-family: var(--serif);
-            font-style: italic;
-            font-size: 15px;
-            color: var(--muted);
-            margin-top: 4px;
-        }
-
-        .double-rule {
-            margin-top: 14px;
-            height: 5px;
-            border-top: 3px double rgba(26, 24, 19, 0.28);
-            border-bottom: 1px solid var(--hairline);
-        }
-
-        /* ───────── Search ─────────
-           Set as a line of the dateline's type rather than a form: the place
-           is the edition's subject, so it reads as one. */
-
-        .search {
-            padding: 10px 0;
-            display: flex;
-            gap: 12px;
-            align-items: center;
-            border-bottom: 1px solid var(--hairline);
-        }
-
-        .search-label {
-            font-family: var(--mono);
-            font-size: 10px;
-            letter-spacing: 0.18em;
-            text-transform: uppercase;
-            color: var(--muted);
-            white-space: nowrap;
-        }
-
-        input {
-            flex: 0 1 12rem;
-            min-width: 0;
-            padding: 4px 0;
-            background: transparent;
-            border: none;
-            border-bottom: 1px solid transparent;
-            color: var(--ink);
-            font-family: var(--serif);
-            font-size: 16px;
-            font-style: italic;
-            font-variation-settings: "opsz" 24, "SOFT" 30;
-            outline: none;
-        }
-
-        input:focus { border-bottom-color: var(--ink); }
-
-        input::placeholder { color: var(--faint); font-style: italic; }
 
         .place {
-            flex: 1;
             min-width: 0;
-            text-align: right;
-            font-family: var(--mono);
-            font-size: 10px;
-            letter-spacing: 0.14em;
-            text-transform: uppercase;
+            font-size: 14px;
             color: var(--muted);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
+        /* ───────── Search ─────────
+           A labelled field under the header; the place it found sits in the
+           header's right-hand corner. */
+
+        .search {
+            padding: 4px 0 12px;
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            border-bottom: 1px solid var(--hairline);
+        }
+
+        .search-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--muted);
+            white-space: nowrap;
+        }
+
+        input {
+            flex: 0 1 14rem;
+            min-width: 0;
+            padding: 4px 0;
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid var(--hairline);
+            color: var(--ink);
+            font-family: var(--sans);
+            font-size: 16px;
+            outline: none;
+        }
+
+        input:focus { border-bottom-color: var(--ink); }
+
+        input::placeholder { color: var(--faint); }
+
         button {
             background: transparent;
             border: none;
             color: var(--ink);
             cursor: pointer;
-            font-family: var(--mono);
-            font-size: 10px;
-            letter-spacing: 0.18em;
-            text-transform: uppercase;
-            /* 44px hit area, set as text like the rest of the dateline. */
+            font-family: var(--sans);
+            font-size: 14px;
+            white-space: nowrap;
+            /* 44px hit area. */
             min-height: 44px;
             padding: 0 4px;
             text-decoration: underline;
@@ -254,78 +217,70 @@
 
         /* ───────── The Pick, as the lead ─────────
            The week's best window is the page's one answer, so it is the h1 and
-           the largest type on the page, closing on a full stop in the verdict's
-           colour. It used to be a 24px line in a tinted panel. */
-
-        .kicker {
-            font-family: var(--mono);
-            font-size: 11px;
-            letter-spacing: 0.18em;
-            text-transform: uppercase;
-            color: var(--muted);
-        }
+           the largest type on the page: the day, then the hours in muted. The
+           line under it says what it rates, in the verdict's colour. */
 
         .lead h1 {
             font-family: var(--serif);
-            font-size: 88px;
+            font-size: 68px;
             font-weight: 500;
-            line-height: 0.95;
-            letter-spacing: -0.025em;
+            line-height: 1.02;
+            letter-spacing: -0.02em;
             font-variation-settings: "opsz" 144, "SOFT" 50;
-            margin-top: 14px;
         }
 
         .lead h1 em {
             display: block;
-            font-style: italic;
-            font-weight: 400;
+            font-style: normal;
             color: var(--muted);
         }
 
-        .lead .standfirst {
-            font-family: var(--serif);
-            font-size: 21px;
-            line-height: 1.35;
+        .pick-line {
+            margin-top: 12px;
+            font-size: 15px;
             color: var(--muted);
-            font-variation-settings: "opsz" 24, "SOFT" 50;
-            margin-top: 20px;
+        }
+
+        .pick-line .v { font-weight: 600; }
+
+        .lead .standfirst {
+            font-size: 20px;
+            line-height: 1.5;
+            color: var(--muted);
+            margin-top: 16px;
             max-width: 30rem;
         }
 
         .lead .standfirst .tnum { font-feature-settings: "tnum"; }
 
-        /* Verdict colours, shared by the kicker, the full stop and the table. */
+        /* Verdict colours, shared by the pick line and the table. */
         .perfect     .v, .v.perfect     { color: var(--perfect); }
         .solid       .v, .v.solid       { color: var(--solid); }
         .challenging .v, .v.challenging { color: var(--tough); }
         .skip        .v, .v.skip        { color: var(--skip); }
 
-        /* ───────── Numbered sections ───────── */
+        /* ───────── Sections ───────── */
 
         .section-head {
             display: flex;
             align-items: baseline;
-            gap: 10px;
-            padding-bottom: 8px;
+            justify-content: space-between;
+            gap: 12px;
             margin-bottom: 14px;
-            border-bottom: 1px solid var(--hairline);
             font-family: var(--serif);
-            font-size: 13px;
+            font-size: 28px;
             font-weight: 500;
-            letter-spacing: 0.14em;
-            text-transform: uppercase;
-            color: var(--muted);
+            letter-spacing: -0.01em;
+            font-variation-settings: "opsz" 60, "SOFT" 40;
+            color: var(--ink);
         }
 
-        .section-head .num { color: var(--accent); }
-
         .section-head .aside {
-            margin-left: auto;
-            font-family: var(--mono);
-            font-size: 10px;
-            letter-spacing: 0.08em;
-            text-transform: none;
-            color: var(--faint);
+            font-family: var(--sans);
+            font-size: 14px;
+            font-weight: 400;
+            letter-spacing: 0;
+            color: var(--muted);
         }
 
         /* ───────── At a glance ─────────
@@ -336,20 +291,16 @@
         .glance { width: 100%; border-collapse: collapse; }
 
         .glance th {
-            font-family: var(--mono);
-            font-size: 10px;
-            font-weight: 400;
-            letter-spacing: 0.16em;
-            text-transform: uppercase;
-            color: var(--faint);
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--muted);
             text-align: left;
             padding: 0 0 6px;
         }
 
         .glance td {
             border-top: 1px solid var(--hairline);
-            padding: 7px 0;
-            font-family: var(--serif);
+            padding: 8px 0;
             font-size: 16px;
         }
 
@@ -360,7 +311,7 @@
 
         .glance td:first-child a:hover { text-decoration: underline; text-decoration-color: var(--hairline); text-underline-offset: 4px; }
 
-        .glance .v { font-style: italic; text-decoration: none; }
+        .glance .v { font-weight: 500; text-decoration: none; }
 
         .glance .none { color: var(--faint); }
 
@@ -368,7 +319,6 @@
            reads as one line of the table. */
         .glance .is-pick::after {
             content: " ◆";
-            font-style: normal;
             font-size: 9px;
             color: var(--accent);
             vertical-align: 2px;
@@ -376,17 +326,15 @@
 
         .glance-note {
             margin-top: 10px;
-            font-family: var(--serif);
-            font-style: italic;
-            font-size: 13px;
+            font-size: 14px;
             color: var(--muted);
         }
 
-        .glance-note .mark { font-style: normal; font-size: 9px; color: var(--accent); vertical-align: 1px; }
+        .glance-note .mark { font-size: 9px; color: var(--accent); vertical-align: 1px; }
 
         /* ───────── Day by day ───────── */
 
-        .days-section { padding-top: 34px; }
+        .days-section { padding-top: 40px; }
 
         .days {
             display: grid;
@@ -435,10 +383,11 @@
         }
 
         .day-name em {
-            font-style: italic;
+            font-family: var(--sans);
+            font-style: normal;
             font-weight: 400;
             color: var(--muted);
-            font-size: 0.72em;
+            font-size: 14px;
             margin-left: 8px;
         }
 
@@ -446,9 +395,7 @@
 
         .day-sun {
             font-family: var(--sans);
-            font-size: 11px;
-            font-weight: 500;
-            letter-spacing: 0.06em;
+            font-size: 13px;
             color: var(--muted);
             font-feature-settings: "tnum";
             white-space: nowrap;
@@ -463,11 +410,9 @@
         .day-date {
             display: block;
             font-family: var(--sans);
-            font-size: 10px;
-            font-weight: 500;
-            letter-spacing: 0.16em;
-            text-transform: uppercase;
-            color: var(--faint);
+            font-size: 13px;
+            font-weight: 400;
+            color: var(--muted);
             margin-top: 4px;
         }
 
@@ -492,38 +437,26 @@
 
         .window-label {
             font-family: var(--sans);
-            font-size: 10px;
+            font-size: 14px;
             font-weight: 600;
-            letter-spacing: 0.22em;
-            text-transform: uppercase;
-            color: var(--muted);
+            color: var(--ink);
             margin-bottom: 6px;
         }
 
-        /* The hours the label actually covers. Set apart from the name so the
-           row still scans as "EARLY MORNING" first and answers "which hours?"
-           second, for the reader who stops to ask. */
+        /* The hours the label actually covers, after the name, so the row
+           scans as "Morning" first and answers "which hours?" second. */
         .window-hours {
-            font-family: var(--mono);
             font-weight: 400;
-            letter-spacing: 0.08em;
-            color: var(--faint);
-            margin-left: 3px;
-            /* Opt out of the label's uppercase: the meridiem is lowercase
-               everywhere else on the page ("5:45a" in the sun times), and
-               "5-9A" reads as a grade. */
-            text-transform: none;
+            color: var(--muted);
+            margin-left: 6px;
         }
 
         .window-temp {
-            font-family: var(--serif);
-            font-size: 30px;
-            font-style: italic;
-            font-weight: 300;
+            font-family: var(--mono);
+            font-size: 24px;
+            font-weight: 400;
             line-height: 1;
-            letter-spacing: -0.03em;
             color: var(--ink);
-            font-variation-settings: "opsz" 60, "SOFT" 70;
             font-feature-settings: "tnum";
             display: inline-block;
         }
@@ -535,7 +468,6 @@
             font-feature-settings: "tnum";
             margin-top: 2px;
             margin-bottom: 10px;
-            letter-spacing: 0.02em;
         }
 
         .window-stats {
@@ -543,7 +475,6 @@
             font-size: 12px;
             color: var(--ink-soft);
             font-feature-settings: "tnum";
-            letter-spacing: 0.01em;
             line-height: 1.5;
         }
 
@@ -558,28 +489,19 @@
 
         .window-note {
             margin-top: 6px;
-            font-family: var(--serif);
-            font-size: 12px;
-            font-style: italic;
+            font-size: 13px;
             color: var(--muted);
-            font-variation-settings: "opsz" 14;
-        }
-
-        .window-note::before {
-            content: "— ";
-            color: var(--faint);
         }
 
         .window-rating { text-align: right; align-self: center; }
 
         .rating-word {
             font-family: var(--serif);
-            font-size: 26px;
-            font-style: italic;
-            font-weight: 400;
+            font-size: 24px;
+            font-weight: 500;
             line-height: 1;
-            letter-spacing: -0.015em;
-            font-variation-settings: "opsz" 60, "SOFT" 80;
+            letter-spacing: -0.01em;
+            font-variation-settings: "opsz" 60, "SOFT" 50;
         }
 
         .window.perfect     .rating-word { color: var(--perfect); }
@@ -593,13 +515,9 @@
         .loading {
             padding: 60px 0;
             text-align: center;
-            font-family: var(--serif);
-            font-style: italic;
             color: var(--muted);
-            font-size: 14px;
-            letter-spacing: 0.01em;
+            font-size: 15px;
             animation: breathe 1.8s ease-in-out infinite;
-            font-variation-settings: "opsz" 18, "SOFT" 50;
         }
 
         @keyframes breathe {
@@ -611,14 +529,9 @@
             padding: 36px 0;
             text-align: center;
             color: var(--skip);
-            font-family: var(--serif);
-            font-style: italic;
-            font-size: 14px;
+            font-size: 15px;
             border-bottom: 1px solid var(--hairline);
         }
-
-        .error::before { content: "— "; color: var(--faint); }
-        .error::after  { content: " —"; color: var(--faint); }
 
         /* ───────── Credit ─────────
            Not a colophon (the suite dropped those): the forecast's sources,
@@ -628,10 +541,7 @@
             padding: 28px 0 44px;
             border-top: 1px solid var(--hairline);
             margin-top: 8px;
-            font-family: var(--mono);
-            font-size: 10px;
-            letter-spacing: 0.16em;
-            text-transform: uppercase;
+            font-size: 14px;
             color: var(--muted);
         }
 
@@ -664,19 +574,16 @@
 
         @media (max-width: 480px) {
             .container { padding: 0 18px; }
-            .dateline .long, .standfirst-sm { display: none; }
-            .dateline .short { display: inline; }
-            .title { font-size: 36px; margin-top: 2px; }
-            .lead h1 { font-size: 64px; }
+            .lead h1 { font-size: 44px; }
             .lead .standfirst { font-size: 18px; }
-            .place { display: none; }
+            .section-head { font-size: 24px; }
             .day-head {
                 grid-template-columns: 1fr;
                 row-gap: 6px;
             }
             .day-sun { grid-column: 1 / -1; }
-            .window-temp { font-size: 26px; }
-            .rating-word { font-size: 22px; }
+            .window-temp { font-size: 22px; }
+            .rating-word { font-size: 21px; }
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -691,15 +598,8 @@
     <div class="container">
 
         <header class="masthead">
-            <div class="dateline">
-                <span class="long">A setlist.run almanac</span>
-                <span class="long tnum" id="dateline-long"></span>
-                <span class="short tnum" id="dateline-short"></span>
-                <span>Week ahead</span>
-            </div>
-            <div class="title">Run Weather</div>
-            <p class="standfirst-sm">The best windows to run in the seven days ahead</p>
-            <div class="double-rule"></div>
+            <span class="title">Run Weather</span>
+            <span class="place" id="place"></span>
         </header>
 
         <div class="search">
@@ -707,13 +607,12 @@
             <input
                 type="text"
                 id="location"
-                placeholder="a city or postal code…"
+                placeholder="City or postal code"
                 onkeydown="if(event.key === 'Enter') fetchWeather()"
                 autocomplete="off"
                 spellcheck="false"
             >
-            <button id="goBtn" onclick="fetchWeather()">Read</button>
-            <span class="place" id="place"></span>
+            <button id="goBtn" onclick="fetchWeather()">Show forecast</button>
         </div>
 
         <div id="results"></div>
@@ -736,13 +635,13 @@
         const STORAGE_KEY = 'run-weather:last-location';
         const DEFAULT_LOCATION = '02131';
 
-        // The two windows the almanac reports on, defined once. "Early Morning"
+        // The two windows the page reports on, defined once. "Early Morning"
         // and "Evening" were bare labels with the hours buried in a filter
         // expression, so the page never said what either one meant — you had to
         // guess whether evening started at 4 or at 7. Both ends live here now,
         // and the label renders its own range, so the two cannot drift apart.
         // Hours are inclusive: `to: 9` covers the 9am hour.
-        // The two halves of the day the almanac looks in. These are search
+        // The two halves of the day the page looks in. These are search
         // bounds, not the answer: the hours actually reported are picked inside
         // them per day (see bestStretch), because a fixed block averaged away
         // the thing this page exists to tell you. A 5-9a August morning runs
@@ -1115,12 +1014,12 @@
                 html += `
                     <div class="front">
                         <section class="lead ${best.rating.class}">
-                            <p class="kicker">The pick <span class="sep">·</span> <span class="v">${best.rating.label}</span></p>
-                            <h1>${best.dayLabel}<em>${best.hoursText}<span class="v">.</span></em></h1>
+                            <h1>${best.dayLabel}<em>${best.hoursText}</em></h1>
+                            <p class="pick-line">The best window this week, rated <span class="v">${best.rating.label}</span></p>
                             <p class="standfirst">${pickStandfirst(best, candidates)}</p>
                         </section>
                         <section class="side">
-                            ${sectionHead(1, 'At a glance')}
+                            ${sectionHead('The week')}
                             ${renderGlance(dayBlocks, best)}
                         </section>
                     </div>
@@ -1129,7 +1028,7 @@
 
             html += `
                 <section class="days-section">
-                    ${sectionHead(best ? 2 : 1, 'Day by day', `Updated ${updatedAt}`)}
+                    ${sectionHead('Day by day', `Updated ${updatedAt}`)}
                     <div class="days">
             `;
 
@@ -1155,12 +1054,10 @@
             results.innerHTML = html;
         }
 
-        const NUMERALS = ['I', 'II', 'III', 'IV', 'V', 'VI'];
-
-        // Fraunces small caps over a hairline, the numeral in the accent
-        // (SUITE.md, "Numbered sections").
-        function sectionHead(n, title, aside = '') {
-            return `<h2 class="section-head"><span class="num">${NUMERALS[n - 1]}.</span><span>${title}</span>${
+        // A plain Fraunces heading, with an optional note on the right
+        // (SUITE.md, "Sections").
+        function sectionHead(title, aside = '') {
+            return `<h2 class="section-head"><span>${title}</span>${
                 aside ? `<span class="aside">${aside}</span>` : ''}</h2>`;
         }
 
@@ -1499,17 +1396,7 @@
             return notes.length > 0 ? notes.join(' · ') : null;
         }
 
-        // The dateline is the reader's day, like the masthead of any paper.
-        function setDateline() {
-            const now = new Date();
-            document.getElementById('dateline-long').textContent =
-                `${now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}`;
-            document.getElementById('dateline-short').textContent =
-                `${now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}`;
-        }
-
         window.onload = () => {
-            setDateline();
             const input = document.getElementById('location');
             input.value = localStorage.getItem(STORAGE_KEY) || DEFAULT_LOCATION;
             if (input.value) fetchWeather();
