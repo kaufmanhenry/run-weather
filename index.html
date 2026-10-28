@@ -172,6 +172,8 @@
         input {
             flex: 0 1 14rem;
             min-width: 0;
+            /* 44px tall for a thumb, the line still a hairline underneath. */
+            min-height: 44px;
             padding: 4px 0;
             background: transparent;
             border: none;
@@ -310,6 +312,14 @@
         .glance td:first-child a {
             color: var(--ink);
             text-decoration: none;
+        }
+
+        .glance td a {
+            /* The links fill the row's height, so a tap anywhere on the row
+               lands, not just on the word. */
+            display: inline-block;
+            padding: 11px 0;
+            margin: -11px 0;
         }
 
         .glance td:first-child a:hover { text-decoration: underline; text-decoration-color: var(--hairline); text-underline-offset: 4px; }
@@ -562,7 +572,6 @@
         }
 
         @media (max-width: 480px) {
-            .container { padding: 0 18px; }
             .lead h1 { font-size: 44px; }
             .lead .standfirst { font-size: 18px; }
             .section-head { font-size: 24px; }
