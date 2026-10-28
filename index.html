@@ -45,6 +45,11 @@
                75% width, for headings; IBM Plex Mono for figures. */
             --display: 'Archivo', 'Helvetica Neue', sans-serif;
             --sans: 'Archivo', -apple-system, system-ui, sans-serif;
+            /* Motion (SUITE.md, "Motion"): one curve, three durations. */
+            --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+            --dur-quick: 150ms;
+            --dur-enter: 400ms;
+            --dur-signature: 900ms;
             --mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
         }
 
@@ -193,7 +198,7 @@
             text-decoration: underline;
             text-underline-offset: 4px;
             text-decoration-color: var(--hairline);
-            transition: text-decoration-color 0.15s;
+            transition: text-decoration-color var(--dur-quick) var(--ease-out);
         }
 
         button:hover { text-decoration-color: var(--ink); }
@@ -208,7 +213,6 @@
             display: grid;
             grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
             border-bottom: 1px solid var(--hairline);
-            animation: rise 0.5s ease-out both;
         }
 
         .front > .lead { padding: 34px 36px 38px 0; }
@@ -343,19 +347,12 @@
             column-gap: 40px;
             padding: 22px 0 24px;
             border-top: 1px solid var(--hairline);
-            animation: rise 0.4s ease-out both;
             scroll-margin-top: 16px;
         }
 
         /* The section heading already opens the list; no rule above row one. */
         .day-entry:first-child { border-top: none; padding-top: 4px; }
 
-        .day-entry:nth-child(2) { animation-delay: 0.04s; }
-        .day-entry:nth-child(3) { animation-delay: 0.08s; }
-        .day-entry:nth-child(4) { animation-delay: 0.12s; }
-        .day-entry:nth-child(5) { animation-delay: 0.16s; }
-        .day-entry:nth-child(6) { animation-delay: 0.20s; }
-        .day-entry:nth-child(7) { animation-delay: 0.24s; }
 
         .day-name {
             font-family: var(--display);
@@ -533,11 +530,19 @@
 
         .credit a:hover { color: var(--ink); text-decoration-color: var(--ink); }
 
-        /* ───────── Motion ───────── */
+        /* ───────── Motion ─────────
+           The suite entrance (SUITE.md, "Motion"): content fades up 6px in
+           order, set by --i. Run Weather's signature is that order itself:
+           the pick lands first, then the week table, then the days one by
+           one. */
 
-        @keyframes rise {
+        .enter {
+            animation: enter var(--dur-enter) var(--ease-out) both;
+            animation-delay: calc(var(--i, 0) * 70ms);
+        }
+
+        @keyframes enter {
             from { opacity: 0; transform: translateY(6px); }
-            to   { opacity: 1; transform: translateY(0);   }
         }
 
         /* Phone: one column, in order of use. The pick first, then the week
@@ -578,7 +583,9 @@
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after {
                 animation-duration: 0.01ms !important;
+                animation-delay: 0s !important;
                 animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
             }
         }
     </style>
@@ -1004,11 +1011,11 @@
                 html += `
                     <div class="front">
                         <section class="lead ${best.rating.class}">
-                            <h1>${best.dayLabel}<em>${best.hoursText}</em></h1>
-                            <p class="pick-line">The best window this week, rated <span class="v">${best.rating.label}</span></p>
-                            <p class="standfirst">${pickStandfirst(best, candidates)}</p>
+                            <h1 class="enter" style="--i:0">${best.dayLabel}<em>${best.hoursText}</em></h1>
+                            <p class="pick-line enter" style="--i:1">The best window this week, rated <span class="v">${best.rating.label}</span></p>
+                            <p class="standfirst enter" style="--i:2">${pickStandfirst(best, candidates)}</p>
                         </section>
-                        <section class="side">
+                        <section class="side enter" style="--i:3">
                             ${sectionHead('The week')}
                             ${renderGlance(dayBlocks, best)}
                         </section>
@@ -1022,9 +1029,9 @@
                     <div class="days">
             `;
 
-            dayBlocks.forEach(d => {
+            dayBlocks.forEach((d, n) => {
                 html += `
-                    <article class="day-entry" id="day-${d.dateStr}">
+                    <article class="day-entry enter" style="--i:${4 + n * 0.6}" id="day-${d.dateStr}">
                         <header class="day-head">
                             <h3 class="day-name${d.isToday ? ' is-today' : ''}">
                                 ${d.primary}${d.secondary ? ` <em>${d.secondary}</em>` : ''}
