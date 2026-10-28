@@ -109,9 +109,11 @@
         ::selection { background: var(--ink); color: var(--paper); }
 
         .container {
-            max-width: 1040px;
+            /* The suite's page width (SUITE.md): 72rem with a 20px gutter, the
+               same in every app so the headers line up across the suite. */
+            max-width: 72rem;
             margin: 0 auto;
-            padding: 0 24px;
+            padding: 0 20px;
             /* Grows into the leftover so the suite bar lands on the bottom
                edge; basis auto so a full week keeps its natural height. */
             flex: 1 0 auto;
