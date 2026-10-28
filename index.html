@@ -412,31 +412,25 @@
             margin-top: 4px;
         }
 
-        /* ───────── Window ───────── */
+        /* ───────── Window ─────────
+           Three plain lines: what and when with its rating on the right, the
+           temperature, then the conditions. No rule down the side and no big
+           verdict word: the week table above already says Prime fourteen
+           times, so here the rating sits at label size. */
 
-        .windows { display: grid; gap: 16px; }
+        .windows { display: grid; gap: 20px; }
 
-        .window {
-            display: grid;
-            grid-template-columns: 1fr auto;
-            gap: 18px;
-            align-items: start;
-            padding-left: 14px;
-            /* One neutral rule, not a rating-coloured one. The verdict word sits
-               in this same row already carrying the rating in that colour, so a
-               tinted left border was a second, weaker copy of the same signal —
-               and a colour-coded left border on a card is the most recognisable
-               tell in the genre. The rule stays for structure; colour is the
-               verdict's job alone. */
-            border-left: 2px solid var(--hairline);
+        .window-head {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 12px;
         }
 
         .window-label {
-            font-family: var(--sans);
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 600;
             color: var(--ink);
-            margin-bottom: 6px;
         }
 
         /* The hours the label actually covers, after the name, so the row
@@ -447,30 +441,44 @@
             margin-left: 6px;
         }
 
+        .rating-word {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .window.perfect     .rating-word { color: var(--perfect); }
+        .window.solid       .rating-word { color: var(--solid); }
+        .window.challenging .rating-word { color: var(--tough); }
+        .window.skip        .rating-word { color: var(--skip); }
+
+        .window-reading {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+            margin-top: 4px;
+        }
+
+        /* A single headline figure, so the body face with tabular figures
+           rather than the mono, whose wide degree sign set "53–58 °" apart. */
         .window-temp {
-            font-family: var(--mono);
             font-size: 24px;
-            font-weight: 400;
-            line-height: 1;
+            font-weight: 600;
+            line-height: 1.1;
             color: var(--ink);
-            font-feature-settings: "tnum";
-            display: inline-block;
+            font-variant-numeric: tabular-nums;
         }
 
         .window-feels {
-            font-family: var(--sans);
-            font-size: 11px;
+            font-size: 14px;
             color: var(--muted);
-            font-feature-settings: "tnum";
-            margin-top: 2px;
-            margin-bottom: 10px;
+            font-variant-numeric: tabular-nums;
         }
 
         .window-stats {
-            font-family: var(--sans);
-            font-size: 12px;
-            color: var(--ink-soft);
-            font-feature-settings: "tnum";
+            margin-top: 6px;
+            font-size: 14px;
+            color: var(--muted);
+            font-variant-numeric: tabular-nums;
             line-height: 1.5;
         }
 
@@ -484,26 +492,11 @@
         }
 
         .window-note {
-            margin-top: 6px;
-            font-size: 13px;
-            color: var(--muted);
-        }
-
-        .window-rating { text-align: right; align-self: center; }
-
-        .rating-word {
-            font-family: var(--display);
-            font-size: 24px;
+            margin-top: 4px;
+            font-size: 14px;
             font-weight: 500;
-            line-height: 1;
-            letter-spacing: -0.01em;
+            color: var(--tough);
         }
-
-        .window.perfect     .rating-word { color: var(--perfect); }
-        .window.solid       .rating-word { color: var(--solid); }
-        .window.challenging .rating-word { color: var(--tough); }
-        .window.skip        .rating-word { color: var(--skip); }
-
 
         /* ───────── States ───────── */
 
@@ -578,12 +571,11 @@
             }
             .day-sun { grid-column: 1 / -1; }
             .window-temp { font-size: 22px; }
-            .rating-word { font-size: 21px; }
         }
 
         /* Display type: Archivo at 75% width, bold, tracking opened back to
            near zero. Last, so it settles the weights and tracking above. */
-        .title, .lead h1, .section-head, .day-name, .rating-word {
+        .title, .lead h1, .section-head, .day-name {
             font-stretch: 75%;
             font-weight: 700;
             letter-spacing: -0.005em;
@@ -1201,30 +1193,32 @@
         }
 
         function renderWindow(w) {
+            const temp = spanText(w.temp, '°');
+            const feels = spanText(w.feels, '°');
             return `
                 <div class="window ${w.rating.class}">
-                    <div class="window-body">
-                        <p class="window-label">${w.label} <span class="window-hours">${w.hoursText}</span></p>
-                        <span class="window-temp">${spanText(w.temp, '°')}</span>
-                        <p class="window-feels">feels ${spanText(w.feels, '°')}</p>
-                        <p class="window-stats">${statsLine([
-                            `${Math.round(w.precip)}% rain`,
-                            `${Math.round(w.wind)} mph`,
-                            `${spanText(w.dew, '°')} dew`,
-                            `${spanText(w.humidity, '%')} humidity`,
-                            // Only once it is saying something. Below 80 the
-                            // heat stress reading is "fine", which the rest of
-                            // the row already covers, and a fifth number on
-                            // every line to report nothing is a bad trade.
-                            ...(typeof w.wbgt === 'number' && w.wbgt >= WBGT_SHOW
-                                ? [`${Math.round(w.wbgt)}° heat stress`]
-                                : []),
-                        ])}</p>
-                        ${w.note ? `<p class="window-note">${w.note}</p>` : ''}
-                    </div>
-                    <div class="window-rating">
+                    <div class="window-head">
+                        <p class="window-label">${w.label}<span class="window-hours">${w.hoursText}</span></p>
                         <span class="rating-word">${w.rating.label}</span>
                     </div>
+                    <div class="window-reading">
+                        <span class="window-temp">${temp}</span>
+                        ${feels !== temp ? `<span class="window-feels">feels ${feels}</span>` : ''}
+                    </div>
+                    <p class="window-stats">${statsLine([
+                        `${Math.round(w.precip)}% rain`,
+                        `${Math.round(w.wind)} mph`,
+                        `${spanText(w.dew, '°')} dew`,
+                        `${spanText(w.humidity, '%')} humidity`,
+                        // Only once it is saying something. Below 80 the
+                        // heat stress reading is "fine", which the rest of
+                        // the row already covers, and a fifth number on
+                        // every line to report nothing is a bad trade.
+                        ...(typeof w.wbgt === 'number' && w.wbgt >= WBGT_SHOW
+                            ? [`${Math.round(w.wbgt)}° heat stress`]
+                            : []),
+                    ])}</p>
+                    ${w.note ? `<p class="window-note">${w.note.charAt(0).toUpperCase()}${w.note.slice(1).replaceAll(' · ', ', ')}</p>` : ''}
                 </div>
             `;
         }
