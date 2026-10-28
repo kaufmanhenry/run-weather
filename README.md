@@ -19,7 +19,7 @@ An editorial almanac for the distance runner. Find the best training windows in 
 ## Design
 
 - The suite's **Almanac** page pattern (see `SUITE.md` in the setlist repo): dateline masthead, the answer as the headline, Roman-numbered sections over hairlines
-- **Fraunces** (display, numerics, rating words), **DM Sans** (body), **JetBrains Mono** (labels and dateline)
+- **Archivo** at 75% width (headings, the pick, rating words), **Archivo** (body), **IBM Plex Mono** (temperatures and figures)
 - Warm paper palette; hierarchy from type and hairline rules, no card chrome
 
 ## Rating System
@@ -40,7 +40,7 @@ Scoring inputs:
 
 - Single-file HTML/CSS/JS — no build step, no framework
 - [Open-Meteo](https://open-meteo.com) for forecast data (free, no key)
-- [Fraunces](https://fonts.google.com/specimen/Fraunces) + [Instrument Sans](https://fonts.google.com/specimen/Instrument+Sans) via Google Fonts
+- [Archivo](https://fonts.google.com/specimen/Archivo) + [IBM Plex Mono](https://fonts.google.com/specimen/IBM+Plex+Mono) via Google Fonts
 - Cloudflare Pages hosting
 
 ## Deploy
