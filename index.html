@@ -329,29 +329,26 @@
 
         .glance-note .mark { font-size: 9px; color: var(--accent); vertical-align: 1px; }
 
-        /* ───────── Day by day ───────── */
+        /* ───────── Day by day ─────────
+           One row a day, read straight down the week: the day on the left,
+           then its morning and evening side by side so the two can be
+           compared at a glance. It used to be two days to a row, each day's
+           windows stacked, which made the eye zig-zag. */
 
         .days-section { padding-top: 40px; }
 
-        .days {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            column-gap: 48px;
-        }
-
-        /* ───────── Day entry ───────── */
-
         .day-entry {
-            padding: 20px 0 24px;
+            display: grid;
+            grid-template-columns: 10rem minmax(0, 1fr) minmax(0, 1fr);
+            column-gap: 40px;
+            padding: 22px 0 24px;
             border-top: 1px solid var(--hairline);
             animation: rise 0.4s ease-out both;
             scroll-margin-top: 16px;
         }
 
-        /* The section heading's rule already sits above the first row; a
-           second one 14px under it says nothing. Two columns on desktop, so
-           the first two. */
-        .day-entry:nth-child(-n+2) { border-top: none; padding-top: 4px; }
+        /* The section heading already opens the list; no rule above row one. */
+        .day-entry:first-child { border-top: none; padding-top: 4px; }
 
         .day-entry:nth-child(2) { animation-delay: 0.04s; }
         .day-entry:nth-child(3) { animation-delay: 0.08s; }
@@ -360,37 +357,36 @@
         .day-entry:nth-child(6) { animation-delay: 0.20s; }
         .day-entry:nth-child(7) { animation-delay: 0.24s; }
 
-        .day-head {
-            display: grid;
-            /* Two columns since the №01 marker came out: the day name takes the
-               slack, the sun times sit hard right. */
-            grid-template-columns: 1fr auto;
-            gap: 14px;
-            align-items: baseline;
-            margin-bottom: 18px;
-        }
-
         .day-name {
             font-family: var(--display);
-            font-size: 20px;
-            font-weight: 500;
-            letter-spacing: -0.01em;
+            font-size: 22px;
             line-height: 1.1;
         }
 
         .day-name em {
+            display: block;
             font-family: var(--sans);
             font-style: normal;
             font-weight: 400;
             color: var(--muted);
             font-size: 14px;
-            margin-left: 8px;
+            margin-top: 4px;
         }
 
         .day-name.is-today em { color: var(--accent); }
 
-        .day-sun {
+        .day-date {
+            display: block;
             font-family: var(--sans);
+            font-size: 14px;
+            font-weight: 400;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+
+        .day-sun {
+            display: block;
+            margin-top: 8px;
             font-size: 13px;
             color: var(--muted);
             font-feature-settings: "tnum";
@@ -403,14 +399,8 @@
         }
         .day-sun .arrow:first-child { margin-left: 0; }
 
-        .day-date {
-            display: block;
-            font-family: var(--sans);
-            font-size: 13px;
-            font-weight: 400;
-            color: var(--muted);
-            margin-top: 4px;
-        }
+        /* A window with nothing to run in (already past, or in the dark). */
+        .window.empty .window-stats { color: var(--faint); }
 
         /* ───────── Window ─────────
            Three plain lines: what and when with its rating on the right, the
@@ -453,8 +443,9 @@
 
         .window-reading {
             display: flex;
+            flex-wrap: wrap;
             align-items: baseline;
-            gap: 10px;
+            column-gap: 10px;
             margin-top: 4px;
         }
 
@@ -555,9 +546,12 @@
             .front { grid-template-columns: minmax(0, 1fr); }
             .front > .lead { padding: 28px 0 30px; }
             .front > .side { padding: 0 0 26px; border-left: none; }
-            .days { grid-template-columns: minmax(0, 1fr); }
-            .day-entry:nth-child(2) { border-top: 1px solid var(--hairline); padding-top: 20px; }
             .days-section { padding-top: 6px; }
+            /* The day across the top, its two windows side by side below. */
+            .day-entry { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 20px; row-gap: 14px; }
+            .day-head { grid-column: 1 / -1; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+            .day-name em { display: inline; margin: 0 0 0 8px; }
+            .day-sun { margin-top: 0; }
         }
 
         @media (max-width: 480px) {
@@ -565,12 +559,11 @@
             .lead h1 { font-size: 44px; }
             .lead .standfirst { font-size: 18px; }
             .section-head { font-size: 24px; }
-            .day-head {
-                grid-template-columns: 1fr;
-                row-gap: 6px;
-            }
-            .day-sun { grid-column: 1 / -1; }
             .window-temp { font-size: 22px; }
+            /* One reading a line in the narrow columns. A grid, not blocks:
+               the <wbr> between readings would otherwise each open a line. */
+            .window-stats { display: grid; align-content: start; line-height: 1.45; }
+            .window-stats wbr, .window-stats .dot { display: none; }
         }
 
         /* Display type: Archivo at 75% width, bold, tracking opened back to
@@ -1039,10 +1032,8 @@
                             </h3>
                             ${d.sun ? `<span class="day-sun"><span class="arrow">↑</span>${formatSunTime(d.sun.sunrise)}<span class="arrow">↓</span>${formatSunTime(d.sun.sunset)}</span>` : ''}
                         </header>
-                        <div class="windows">
-                            ${d.morning ? renderWindow(d.morning) : ''}
-                            ${d.evening ? renderWindow(d.evening) : ''}
-                        </div>
+                        ${d.morning ? renderWindow(d.morning) : emptyWindow(BANDS.morning.label)}
+                        ${d.evening ? renderWindow(d.evening) : emptyWindow(BANDS.evening.label)}
                     </article>
                 `;
             });
@@ -1191,6 +1182,17 @@
                 // adding width, leaving the dot's own margins to do the
                 // spacing.
                 .join('<wbr>');
+        }
+
+        // A slot with no window keeps its place in the row, so mornings stay
+        // under mornings down the week.
+        function emptyWindow(label) {
+            return `
+                <div class="window empty">
+                    <div class="window-head"><p class="window-label">${label}</p></div>
+                    <p class="window-stats">No run window</p>
+                </div>
+            `;
         }
 
         function renderWindow(w) {
